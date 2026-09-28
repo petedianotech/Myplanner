@@ -7,7 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.myplanner.app.ui.navigation.MyPlannerNavGraph
+import com.myplanner.app.ui.navigation.MyPlannerApp
 import com.myplanner.app.ui.theme.MyPlannerTheme
 
 class MainActivity : ComponentActivity() {
@@ -17,7 +17,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             MyPlannerTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    MyPlannerNavGraph()
+                    MyPlannerApp()
                 }
             }
         }
