@@ -23,7 +23,9 @@ data class AppSpacing(
     val screenHorizontal: Dp = 20.dp,
     val screenVertical: Dp = 16.dp,
     val section: Dp = 24.dp,
-    val cardPadding: Dp = 16.dp
+    val cardPadding: Dp = 16.dp,
+    val listItemVertical: Dp = 12.dp,
+    val listItemHorizontal: Dp = 16.dp
 )
 
 val LocalSpacing = staticCompositionLocalOf { AppSpacing() }
@@ -32,11 +34,17 @@ object AppDimens {
     val iconSm = 18.dp
     val iconMd = 24.dp
     val iconLg = 32.dp
+    val iconXl = 40.dp
     val minTouchTarget = 48.dp
     val topBarHeight = 64.dp
     val bottomNavHeight = 80.dp
-    val cardElevation = 1.dp
-    val cardElevationRaised = 3.dp
+    val fabSize = 56.dp
+    val listItemMinHeight = 56.dp
+    val textFieldMinHeight = 56.dp
+    val chipHeight = 32.dp
+    val cardElevation = 0.dp
+    val cardElevationRaised = 2.dp
+    val dialogElevation = 6.dp
 }
 
 val Spacing: AppSpacing

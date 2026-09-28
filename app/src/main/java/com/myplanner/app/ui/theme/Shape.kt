@@ -20,7 +20,11 @@ object AppShapes {
     val card = RoundedCornerShape(16.dp)
     val cardLarge = RoundedCornerShape(20.dp)
     val button = RoundedCornerShape(12.dp)
+    val textField = RoundedCornerShape(12.dp)
     val chip = RoundedCornerShape(50)
     val dialog = RoundedCornerShape(20.dp)
     val bottomSheet = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+    val listItem = RoundedCornerShape(12.dp)
+    val avatar = RoundedCornerShape(50)
+    val badge = RoundedCornerShape(50)
 }
