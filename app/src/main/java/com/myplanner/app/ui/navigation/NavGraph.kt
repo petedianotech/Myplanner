@@ -6,30 +6,30 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.myplanner.app.ui.foundation.FoundationScreen
+import com.myplanner.app.ui.foundation.DesignSystemScreen
 
 /**
  * Navigation foundation for MyPlanner.
- * Phase 1 only hosts the design-system validation screen.
- * Future destinations will be added here.
+ * Phase 2 hosts the design-system gallery for visual validation.
+ * Feature destinations will replace this start route in later phases.
  */
 object Routes {
-    const val FOUNDATION = "foundation"
+    const val DESIGN_SYSTEM = "design_system"
 }
 
 @Composable
 fun MyPlannerNavGraph(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = Routes.FOUNDATION
+    startDestination: String = Routes.DESIGN_SYSTEM
 ) {
     NavHost(
         navController = navController,
         startDestination = startDestination,
         modifier = modifier
     ) {
-        composable(Routes.FOUNDATION) {
-            FoundationScreen()
+        composable(Routes.DESIGN_SYSTEM) {
+            DesignSystemScreen()
         }
     }
 }
