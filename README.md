@@ -23,10 +23,16 @@ This release establishes the production-quality project structure and design sys
 
 ### Build & run
 
-```bash
-./gradlew assembleDebug
-# or open in Android Studio and Run
-```
+1. Open the project in **Android Studio** (File → Open → select the repo root).
+2. Android Studio will sync Gradle. If `gradle-wrapper.jar` is missing, use **File → Settings → Build → Gradle** and let Studio download the wrapper, or run:
+   ```bash
+   gradle wrapper --gradle-version 8.11.1
+   ```
+3. Run on a device/emulator:
+   ```bash
+   ./gradlew assembleDebug
+   ```
+   or use the green Run button in Android Studio.
 
 ### Package structure
 
