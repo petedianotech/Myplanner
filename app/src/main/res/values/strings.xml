@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MyPlanner</string>
+    <string name="foundation_title">Design System Foundation</string>
+    <string name="foundation_subtitle">Phase 1 validation screen</string>
+    <string name="primary_button">Primary action</string>
+    <string name="secondary_button">Secondary action</string>
+    <string name="section_typography">Typography</string>
+    <string name="section_colors">Color roles</string>
+    <string name="section_components">Components</string>
+    <string name="section_surfaces">Surfaces &amp; elevation</string>
+    <string name="empty_title">Nothing here yet</string>
+    <string name="empty_message">This is the empty-state foundation for future lists.</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system">System</string>
+</resources>
