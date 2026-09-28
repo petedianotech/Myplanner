@@ -8,25 +8,24 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Inbox
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import com.myplanner.app.ui.theme.AppDimens
 import com.myplanner.app.ui.theme.Spacing
 
 @Composable
-fun EmptyState(
+fun ErrorState(
     title: String,
     message: String,
     modifier: Modifier = Modifier,
-    icon: ImageVector = Icons.Outlined.Inbox,
-    action: (@Composable () -> Unit)? = null
+    onRetry: (() -> Unit)? = null,
+    retryLabel: String = "Try again"
 ) {
     Column(
         modifier = modifier
@@ -36,10 +35,10 @@ fun EmptyState(
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            imageVector = icon,
+            imageVector = Icons.Outlined.ErrorOutline,
             contentDescription = null,
             modifier = Modifier.size(AppDimens.iconXl),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
+            tint = MaterialTheme.colorScheme.error.copy(alpha = 0.85f)
         )
         Spacer(modifier = Modifier.height(Spacing.lg))
         Text(
@@ -55,9 +54,12 @@ fun EmptyState(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
-        if (action != null) {
+        if (onRetry != null) {
             Spacer(modifier = Modifier.height(Spacing.xl))
-            action()
+            AppSecondaryButton(
+                text = retryLabel,
+                onClick = onRetry
+            )
         }
     }
 }
