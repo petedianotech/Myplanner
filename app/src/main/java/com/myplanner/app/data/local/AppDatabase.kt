@@ -6,16 +6,16 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 /**
- * Room database foundation for offline-first architecture.
- * Phase 1: schema marker only — entities and DAOs will be added when features arrive.
- * This establishes the single source of truth pattern for user-created data.
+ * Room database — offline source of truth for user-created data.
  */
 @Database(
-    entities = [SchemaMeta::class],
-    version = 1,
+    entities = [SchemaMeta::class, ReminderEntity::class],
+    version = 2,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
+
+    abstract fun reminderDao(): ReminderDao
 
     companion object {
         private const val DATABASE_NAME = "myplanner.db"
