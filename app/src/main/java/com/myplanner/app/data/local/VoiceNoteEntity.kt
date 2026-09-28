@@ -3,12 +3,11 @@ package com.myplanner.app.data.local
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "reminders")
-data class ReminderEntity(
+@Entity(tableName = "voice_notes")
+data class VoiceNoteEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,
-    val notes: String = "",
-    val triggerAtEpochMillis: Long? = null,
-    val completed: Boolean = false,
+    val filePath: String = "",
+    val durationMillis: Long = 0,
     val createdAtEpochMillis: Long = System.currentTimeMillis()
 )
