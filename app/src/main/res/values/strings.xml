@@ -2,6 +2,40 @@
 <resources>
     <string name="app_name">MyPlanner</string>
 
+    <string name="hello_tagline">Your plans. Your ideas. Your time.</string>
+    <string name="hello_description">MyPlanner helps you remember tasks, plan reminders, save notes and ideas — and keeps everything available on your device.</string>
+    <string name="hello_get_started">Get started</string>
+    <string name="hello_explore_first">Explore first</string>
+    <string name="hello_privacy">Works offline • Private by default</string>
+
+    <string name="notify_title">Get reminded when it matters</string>
+    <string name="notify_body">Allow notifications so MyPlanner can alert you about scheduled reminders. Alerts stay on your device — nothing is sent to the cloud.</string>
+    <string name="notify_footnote">You can change this anytime in system settings.</string>
+    <string name="notify_allow">Allow notifications</string>
+    <string name="notify_not_now">Not now</string>
+
+    <string name="first_reminder_title">Create your first reminder?</string>
+    <string name="first_reminder_body">A short title is enough. You can always add more later from the home screen.</string>
+    <string name="first_reminder_create">Create your first reminder</string>
+    <string name="first_reminder_skip">Skip for now</string>
+
+    <string name="create_reminder_title">New reminder</string>
+    <string name="create_reminder_subtitle">Saved on this device only</string>
+    <string name="create_reminder_label">What should we remind you about?</string>
+    <string name="create_reminder_placeholder">e.g. Call the dentist</string>
+    <string name="create_reminder_hint">Keep it short and clear</string>
+    <string name="create_reminder_error">Please enter a title</string>
+    <string name="create_reminder_notes_label">Notes (optional)</string>
+    <string name="create_reminder_notes_placeholder">Extra details…</string>
+    <string name="create_reminder_save">Save reminder</string>
+    <string name="create_reminder_saving">Saving…</string>
+    <string name="create_reminder_cancel">Cancel</string>
+
+    <string name="home_title">Today</string>
+    <string name="home_subtitle">Your plans for the day</string>
+    <string name="home_empty_title">Nothing scheduled yet</string>
+    <string name="home_empty_message">Tasks and reminders you create will show up here. Everything stays on your device.</string>
+
     <string name="design_system_title">Design System</string>
     <string name="design_system_subtitle">Phase 2 component gallery</string>
     <string name="section_typography">Typography</string>
