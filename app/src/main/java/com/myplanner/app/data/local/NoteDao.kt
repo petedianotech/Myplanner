@@ -60,4 +60,15 @@ interface NoteDao {
         """
     )
     suspend fun setArchived(id: Long, archived: Boolean, updatedAt: Long)
+
+    @Query(
+        """
+        SELECT * FROM notes
+        WHERE title LIKE '%' || :query || '%'
+           OR body LIKE '%' || :query || '%'
+        ORDER BY pinned DESC, updatedAtEpochMillis DESC
+        LIMIT 50
+        """
+    )
+    fun search(query: String): Flow<List<NoteEntity>>
 }
