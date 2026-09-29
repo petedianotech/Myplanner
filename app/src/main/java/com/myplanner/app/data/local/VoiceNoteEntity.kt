@@ -7,7 +7,9 @@ import androidx.room.PrimaryKey
 data class VoiceNoteEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,
+    val description: String = "",
     val filePath: String = "",
     val durationMillis: Long = 0,
-    val createdAtEpochMillis: Long = System.currentTimeMillis()
+    val createdAtEpochMillis: Long = System.currentTimeMillis(),
+    val updatedAtEpochMillis: Long = System.currentTimeMillis()
 )
