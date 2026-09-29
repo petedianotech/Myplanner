@@ -51,7 +51,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val reminderRepository = ReminderRepository.create(application, db.reminderDao())
     val noteRepository = NoteRepository(db.noteDao())
     val ideaRepository = IdeaRepository(db.ideaDao())
-    val voiceNoteRepository = VoiceNoteRepository(db.voiceNoteDao())
+    val voiceNoteRepository = VoiceNoteRepository.create(application, db.voiceNoteDao())
 
     val uiState: StateFlow<HomeUiState> = combine(
         taskRepository.observeTasks(),
@@ -68,9 +68,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         val taskItems = tasks.map {
             PlanItem(it.id, PlanKind.TASK, it.title, it.dueAtEpochMillis, it.completed, it.priority)
         }
-        val reminderItems = reminders.filter { !it.cancelled }.map {
-            PlanItem(it.id, PlanKind.REMINDER, it.title, it.triggerAtEpochMillis, it.completed)
-        }
+        val reminderItems = reminders
+            .filter { !it.cancelled }
+            .map {
+                PlanItem(it.id, PlanKind.REMINDER, it.title, it.triggerAtEpochMillis, it.completed)
+            }
         val all = taskItems + reminderItems
 
         val todayItems = all.filter { item ->
@@ -103,7 +105,11 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             recentNotes = notes.size,
             recentIdeas = ideas.size
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = HomeUiState()
+    )
 
     fun toggleItem(item: PlanItem) {
         viewModelScope.launch {
