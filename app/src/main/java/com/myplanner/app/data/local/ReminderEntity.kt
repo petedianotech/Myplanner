@@ -1,14 +1,17 @@
 package com.myplanner.app.data.local
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-/**
- * Local reminder with optional recurrence.
- * Missed is derived: past trigger, not completed, not cancelled.
- * lastFiredAt prevents duplicate notifications for the same occurrence.
- */
-@Entity(tableName = "reminders")
+@Entity(
+    tableName = "reminders",
+    indices = [
+        Index(value = ["triggerAtEpochMillis"]),
+        Index(value = ["completed", "cancelled", "triggerAtEpochMillis"]),
+        Index(value = ["title"])
+    ]
+)
 data class ReminderEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,

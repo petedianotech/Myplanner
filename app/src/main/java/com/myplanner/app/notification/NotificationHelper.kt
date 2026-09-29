@@ -10,6 +10,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.myplanner.app.MainActivity
 import com.myplanner.app.R
+import java.util.concurrent.atomic.AtomicBoolean
 
 object NotificationHelper {
 
@@ -18,8 +19,11 @@ object NotificationHelper {
     private const val CHANNEL_DESC =
         "Local alerts for scheduled reminders. Delivered on this device only."
 
+    private val channelsReady = AtomicBoolean(false)
+
     fun ensureChannels(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        if (channelsReady.get()) return
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
         val channel = NotificationChannel(
             CHANNEL_REMINDERS,
@@ -31,6 +35,7 @@ object NotificationHelper {
             setShowBadge(true)
         }
         manager.createNotificationChannel(channel)
+        channelsReady.set(true)
     }
 
     fun showReminderNotification(
@@ -38,7 +43,8 @@ object NotificationHelper {
         reminderId: Long,
         title: String,
         notes: String = "",
-        isMissed: Boolean = false
+        isMissed: Boolean = false,
+        vibrate: Boolean = true
     ) {
         ensureChannels(context)
 
@@ -96,6 +102,10 @@ object NotificationHelper {
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
+            .apply {
+                if (vibrate) setVibrate(longArrayOf(0, 40, 40, 40))
+                else setVibrate(longArrayOf(0))
+            }
             .setContentIntent(openPending)
             .addAction(0, "Done", donePending)
             .addAction(0, "Snooze ${ReminderScheduler.SNOOZE_MINUTES}m", snoozePending)
