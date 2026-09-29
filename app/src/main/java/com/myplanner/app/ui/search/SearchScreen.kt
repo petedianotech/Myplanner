@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,6 +50,7 @@ import com.myplanner.app.ui.components.EmptyState
 import com.myplanner.app.ui.components.SectionHeader
 import com.myplanner.app.ui.home.HomeViewModel
 import com.myplanner.app.ui.theme.Spacing
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flowOf
 
 enum class SearchKind { TASK, REMINDER, NOTE, IDEA, VOICE }
@@ -71,46 +73,53 @@ fun SearchScreen(
     viewModel: HomeViewModel = viewModel()
 ) {
     var query by rememberSaveable { mutableStateOf("") }
+    var debounced by remember { mutableStateOf("") }
+    LaunchedEffect(query) {
+        delay(280)
+        debounced = query.trim()
+    }
     val trimmed = query.trim()
-    val active = trimmed.length >= 2
+    val active = debounced.length >= 2
 
-    val tasksFlow = if (active) viewModel.taskRepository.search(trimmed) else flowOf(emptyList())
-    val remindersFlow = if (active) viewModel.reminderRepository.search(trimmed) else flowOf(emptyList())
-    val notesFlow = if (active) viewModel.noteRepository.search(trimmed) else flowOf(emptyList())
-    val ideasFlow = if (active) viewModel.ideaRepository.search(trimmed) else flowOf(emptyList())
-    val voicesFlow = if (active) viewModel.voiceNoteRepository.search(trimmed) else flowOf(emptyList())
+    val tasksFlow = if (active) viewModel.taskRepository.search(debounced) else flowOf(emptyList())
+    val remindersFlow = if (active) viewModel.reminderRepository.search(debounced) else flowOf(emptyList())
+    val notesFlow = if (active) viewModel.noteRepository.search(debounced) else flowOf(emptyList())
+    val ideasFlow = if (active) viewModel.ideaRepository.search(debounced) else flowOf(emptyList())
+    val voicesFlow = if (active) viewModel.voiceNoteRepository.search(debounced) else flowOf(emptyList())
     val tasks by tasksFlow.collectAsStateWithLifecycle(emptyList())
     val reminders by remindersFlow.collectAsStateWithLifecycle(emptyList())
     val notes by notesFlow.collectAsStateWithLifecycle(emptyList())
     val ideas by ideasFlow.collectAsStateWithLifecycle(emptyList())
     val voices by voicesFlow.collectAsStateWithLifecycle(emptyList())
 
-    val groups = buildList {
-        if (tasks.isNotEmpty()) add(
-            "Tasks" to tasks.map {
-                SearchHit(it.id, SearchKind.TASK, it.title.ifBlank { "Untitled task" }, it.notes.takeIf { n -> n.isNotBlank() }?.take(80))
-            }
-        )
-        if (reminders.isNotEmpty()) add(
-            "Reminders" to reminders.map {
-                SearchHit(it.id, SearchKind.REMINDER, it.title, it.notes.takeIf { n -> n.isNotBlank() }?.take(80))
-            }
-        )
-        if (notes.isNotEmpty()) add(
-            "Notes" to notes.map {
-                SearchHit(it.id, SearchKind.NOTE, it.title.ifBlank { "Untitled note" }, it.body.takeIf { b -> b.isNotBlank() }?.take(80))
-            }
-        )
-        if (ideas.isNotEmpty()) add(
-            "Ideas" to ideas.map {
-                SearchHit(it.id, SearchKind.IDEA, it.title, listOfNotNull(it.category.takeIf { c -> c.isNotBlank() }, it.status).joinToString(" · "))
-            }
-        )
-        if (voices.isNotEmpty()) add(
-            "Voice notes" to voices.map {
-                SearchHit(it.id, SearchKind.VOICE, it.title, it.description.takeIf { d -> d.isNotBlank() })
-            }
-        )
+    val groups = remember(tasks, reminders, notes, ideas, voices) {
+        buildList {
+            if (tasks.isNotEmpty()) add(
+                "Tasks" to tasks.map {
+                    SearchHit(it.id, SearchKind.TASK, it.title.ifBlank { "Untitled task" }, it.notes.takeIf { n -> n.isNotBlank() }?.take(80))
+                }
+            )
+            if (reminders.isNotEmpty()) add(
+                "Reminders" to reminders.map {
+                    SearchHit(it.id, SearchKind.REMINDER, it.title, it.notes.takeIf { n -> n.isNotBlank() }?.take(80))
+                }
+            )
+            if (notes.isNotEmpty()) add(
+                "Notes" to notes.map {
+                    SearchHit(it.id, SearchKind.NOTE, it.title.ifBlank { "Untitled note" }, it.body.takeIf { b -> b.isNotBlank() }?.take(80))
+                }
+            )
+            if (ideas.isNotEmpty()) add(
+                "Ideas" to ideas.map {
+                    SearchHit(it.id, SearchKind.IDEA, it.title, listOfNotNull(it.category.takeIf { c -> c.isNotBlank() }, it.status).joinToString(" · "))
+                }
+            )
+            if (voices.isNotEmpty()) add(
+                "Voice notes" to voices.map {
+                    SearchHit(it.id, SearchKind.VOICE, it.title, it.description.takeIf { d -> d.isNotBlank() })
+                }
+            )
+        }
     }
 
     val focus = FocusRequester()
@@ -174,11 +183,18 @@ fun SearchScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    groups.isEmpty() -> item {
+                    groups.isEmpty() && active -> item {
                         EmptyState(
                             title = "No matches",
                             message = "Nothing locally matches this search. Try a different word.",
                             icon = Icons.Outlined.Search
+                        )
+                    }
+                    !active -> item {
+                        Text(
+                            text = "Type at least two characters.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     else -> {
