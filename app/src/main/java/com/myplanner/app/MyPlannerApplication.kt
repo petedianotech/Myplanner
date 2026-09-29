@@ -1,15 +1,25 @@
 package com.myplanner.app
 
 import android.app.Application
+import com.myplanner.app.data.local.AppDatabase
+import com.myplanner.app.data.repository.ReminderRepository
+import com.myplanner.app.notification.NotificationHelper
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
-/**
- * Application entry point.
- * Phase 1: lightweight initialization only.
- * Future: Room database, WorkManager configuration, and reminder scheduling setup.
- */
 class MyPlannerApplication : Application() {
+
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     override fun onCreate() {
         super.onCreate()
-        // Intentionally minimal — no background services or heavy init in Phase 1.
+        NotificationHelper.ensureChannels(this)
+        appScope.launch {
+            val db = AppDatabase.getInstance(this@MyPlannerApplication)
+            ReminderRepository.create(this@MyPlannerApplication, db.reminderDao())
+                .rescheduleAllActive()
+        }
     }
 }
