@@ -46,9 +46,11 @@ import com.myplanner.app.ui.home.HomeScreen
 import com.myplanner.app.ui.home.HomeViewModel
 import com.myplanner.app.ui.home.PlanKind
 import com.myplanner.app.ui.idea.CreateIdeaScreen
+import com.myplanner.app.ui.idea.IdeaEditorScreen
+import com.myplanner.app.ui.idea.IdeasScreen
 import com.myplanner.app.ui.note.CreateNoteScreen
-import com.myplanner.app.ui.plans.IdeasScreen
-import com.myplanner.app.ui.plans.NotesScreen
+import com.myplanner.app.ui.note.NoteEditorScreen
+import com.myplanner.app.ui.note.NotesScreen
 import com.myplanner.app.ui.plans.PlansScreen
 import com.myplanner.app.ui.reminder.CreateFirstReminderScreen
 import com.myplanner.app.ui.reminder.CreateReminderScreen
@@ -57,7 +59,9 @@ import com.myplanner.app.ui.setup.FirstReminderPromptScreen
 import com.myplanner.app.ui.setup.NotificationSetupScreen
 import com.myplanner.app.ui.task.CreateTaskScreen
 import com.myplanner.app.ui.task.TaskEditorScreen
+import com.myplanner.app.ui.voice.VoiceNotePlayerScreen
 import com.myplanner.app.ui.voice.VoiceNoteScreen
+import com.myplanner.app.ui.voice.VoiceNotesListScreen
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -76,10 +80,18 @@ object Routes {
     const val CREATE_NOTE = "create_note"
     const val CREATE_IDEA = "create_idea"
     const val CREATE_VOICE = "create_voice"
+    const val VOICE_NOTES = "voice_notes"
+    const val VOICE_DETAIL = "voice_detail/{noteId}"
     const val EDIT_TASK = "edit_task/{taskId}"
     const val EDIT_REMINDER = "edit_reminder/{reminderId}"
+    const val EDIT_NOTE = "edit_note/{noteId}"
+    const val EDIT_IDEA = "edit_idea/{ideaId}"
+
     fun editTask(id: Long) = "edit_task/$id"
     fun editReminder(id: Long) = "edit_reminder/$id"
+    fun editNote(id: Long) = "edit_note/$id"
+    fun editIdea(id: Long) = "edit_idea/$id"
+    fun voiceDetail(id: Long) = "voice_detail/$id"
 }
 
 private data class Tab(val route: String, val label: String, val icon: ImageVector)
@@ -94,22 +106,27 @@ fun MyPlannerNavGraph(
     val scope = rememberCoroutineScope()
     var startReady by remember { mutableStateOf(false) }
     var onboardingComplete by remember { mutableStateOf(false) }
+
     LaunchedEffect(preferencesRepository) {
         onboardingComplete = preferencesRepository.onboardingComplete.first()
         startReady = true
     }
+
     LaunchedEffect(openReminderId, startReady, onboardingComplete) {
         if (startReady && onboardingComplete && openReminderId != null && openReminderId > 0) {
             navController.navigate(Routes.editReminder(openReminderId)) { launchSingleTop = true }
         }
     }
+
     if (!startReady) {
         Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
         return
     }
+
     val startDestination = if (onboardingComplete) Routes.MAIN else Routes.HELLO
+
     NavHost(navController = navController, startDestination = startDestination, modifier = modifier) {
         composable(Routes.HELLO) {
             HelloScreen(
@@ -189,33 +206,69 @@ fun MyPlannerNavGraph(
             )
         }
         composable(Routes.CREATE_NOTE) {
-            val homeVm: HomeViewModel = viewModel()
-            CreateNoteScreen(
-                onSave = { title, body -> homeVm.noteRepository.createNote(title, body); navController.popBackStack() },
+            NoteEditorScreen(
+                noteId = null,
+                onDone = { navController.popBackStack() },
                 onCancel = { navController.popBackStack() }
             )
         }
         composable(Routes.CREATE_IDEA) {
-            val homeVm: HomeViewModel = viewModel()
-            CreateIdeaScreen(
-                onSave = { title, body -> homeVm.ideaRepository.createIdea(title, body); navController.popBackStack() },
+            IdeaEditorScreen(
+                ideaId = null,
+                onDone = { navController.popBackStack() },
                 onCancel = { navController.popBackStack() }
             )
         }
         composable(Routes.CREATE_VOICE) {
             val homeVm: HomeViewModel = viewModel()
             VoiceNoteScreen(
-                onSave = { title, path, duration -> homeVm.voiceNoteRepository.createVoiceNote(title, path, duration); navController.popBackStack() },
+                onSave = { title, path, duration ->
+                    homeVm.voiceNoteRepository.createVoiceNote(title, path, duration)
+                    navController.popBackStack()
+                },
                 onCancel = { navController.popBackStack() }
             )
         }
-        composable(Routes.EDIT_TASK, arguments = listOf(navArgument("taskId") { type = NavType.LongType })) { entry ->
+        composable(Routes.VOICE_NOTES) {
+            VoiceNotesListScreen(
+                onOpen = { navController.navigate(Routes.voiceDetail(it)) },
+                onRecord = { navController.navigate(Routes.CREATE_VOICE) }
+            )
+        }
+        composable(
+            route = Routes.VOICE_DETAIL,
+            arguments = listOf(navArgument("noteId") { type = NavType.LongType })
+        ) { entry ->
+            val noteId = entry.arguments?.getLong("noteId") ?: return@composable
+            VoiceNotePlayerScreen(noteId = noteId, onDone = { navController.popBackStack() })
+        }
+        composable(
+            route = Routes.EDIT_TASK,
+            arguments = listOf(navArgument("taskId") { type = NavType.LongType })
+        ) { entry ->
             val taskId = entry.arguments?.getLong("taskId") ?: return@composable
             TaskEditorScreen(taskId = taskId, onDone = { navController.popBackStack() }, onCancel = { navController.popBackStack() })
         }
-        composable(Routes.EDIT_REMINDER, arguments = listOf(navArgument("reminderId") { type = NavType.LongType })) { entry ->
+        composable(
+            route = Routes.EDIT_REMINDER,
+            arguments = listOf(navArgument("reminderId") { type = NavType.LongType })
+        ) { entry ->
             val reminderId = entry.arguments?.getLong("reminderId") ?: return@composable
             ReminderEditorScreen(reminderId = reminderId, onDone = { navController.popBackStack() }, onCancel = { navController.popBackStack() })
+        }
+        composable(
+            route = Routes.EDIT_NOTE,
+            arguments = listOf(navArgument("noteId") { type = NavType.LongType })
+        ) { entry ->
+            val noteId = entry.arguments?.getLong("noteId") ?: return@composable
+            NoteEditorScreen(noteId = noteId, onDone = { navController.popBackStack() }, onCancel = { navController.popBackStack() })
+        }
+        composable(
+            route = Routes.EDIT_IDEA,
+            arguments = listOf(navArgument("ideaId") { type = NavType.LongType })
+        ) { entry ->
+            val ideaId = entry.arguments?.getLong("ideaId") ?: return@composable
+            IdeaEditorScreen(ideaId = ideaId, onDone = { navController.popBackStack() }, onCancel = { navController.popBackStack() })
         }
     }
 }
@@ -232,6 +285,7 @@ private fun MainTabs(rootNavController: NavHostController) {
     )
     val backStack by tabNav.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
@@ -277,10 +331,22 @@ private fun MainTabs(rootNavController: NavHostController) {
                     onOpenReminder = { rootNavController.navigate(Routes.editReminder(it)) }
                 )
             }
-            composable(Routes.NOTES) { NotesScreen() }
-            composable(Routes.IDEAS) { IdeasScreen() }
+            composable(Routes.NOTES) {
+                NotesScreen(
+                    onOpenNote = { rootNavController.navigate(Routes.editNote(it)) },
+                    onCreateNote = { rootNavController.navigate(Routes.CREATE_NOTE) },
+                    onOpenVoiceNotes = { rootNavController.navigate(Routes.VOICE_NOTES) }
+                )
+            }
+            composable(Routes.IDEAS) {
+                IdeasScreen(
+                    onOpenIdea = { rootNavController.navigate(Routes.editIdea(it)) },
+                    onCreateIdea = { rootNavController.navigate(Routes.CREATE_IDEA) }
+                )
+            }
         }
     }
+
     if (showCapture) {
         QuickCaptureSheet(
             onSelect = { type ->
