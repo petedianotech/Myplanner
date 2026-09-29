@@ -40,4 +40,10 @@ interface VoiceNoteDao {
         """
     )
     fun search(query: String): Flow<List<VoiceNoteEntity>>
+
+    @Query("DELETE FROM voice_notes")
+    suspend fun deleteAll()
+
+    @Query("SELECT COUNT(*) FROM voice_notes")
+    suspend fun count(): Int
 }
