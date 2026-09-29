@@ -37,7 +37,8 @@ object NotificationHelper {
         context: Context,
         reminderId: Long,
         title: String,
-        notes: String = ""
+        notes: String = "",
+        isMissed: Boolean = false
     ) {
         ensureChannels(context)
 
@@ -66,7 +67,7 @@ object NotificationHelper {
         val snoozeIntent = Intent(context, ReminderReceiver::class.java).apply {
             action = ReminderScheduler.ACTION_SNOOZE
             putExtra(ReminderScheduler.EXTRA_REMINDER_ID, reminderId)
-            putExtra(ReminderScheduler.EXTRA_REMINDER_TITLE, title)
+            putExtra(ReminderScheduler.EXTRA_SNOOZE_MINUTES, ReminderScheduler.SNOOZE_MINUTES)
         }
         val snoozePending = PendingIntent.getBroadcast(
             context,
@@ -75,15 +76,26 @@ object NotificationHelper {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val body = notes.ifBlank { "Tap to open · Done or snooze from here" }
+        val body = when {
+            notes.isNotBlank() -> notes
+            isMissed -> "Missed · Tap to open, mark done, or snooze"
+            else -> "Tap to open · Done or snooze from here"
+        }
+        val contentTitle = if (isMissed) {
+            "Missed: ${title.ifBlank { "Reminder" }}"
+        } else {
+            title.ifBlank { "Reminder" }
+        }
+
         val notification = NotificationCompat.Builder(context, CHANNEL_REMINDERS)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title.ifBlank { "Reminder" })
+            .setContentTitle(contentTitle)
             .setContentText(body)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setAutoCancel(true)
+            .setOnlyAlertOnce(true)
             .setContentIntent(openPending)
             .addAction(0, "Done", donePending)
             .addAction(0, "Snooze ${ReminderScheduler.SNOOZE_MINUTES}m", snoozePending)
