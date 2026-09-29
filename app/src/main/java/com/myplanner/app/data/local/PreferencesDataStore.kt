@@ -10,10 +10,6 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-/**
- * Lightweight preferences via DataStore.
- * Reserved for settings and first-run flags — not user-created content.
- */
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
     name = "myplanner_preferences"
 )
@@ -26,6 +22,8 @@ class PreferencesRepository(private val context: Context) {
         val NOTIFICATIONS_PROMPTED = booleanPreferencesKey("notifications_prompted")
         val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
         val ENTERED_VIA_EXPLORE = booleanPreferencesKey("entered_via_explore")
+        val PLAN_FILTER = stringPreferencesKey("plan_filter")
+        val IDEA_CATEGORY_FILTER = stringPreferencesKey("idea_category_filter")
     }
 
     val themeMode: Flow<String> = context.dataStore.data.map { prefs ->
@@ -48,34 +46,40 @@ class PreferencesRepository(private val context: Context) {
         prefs[Keys.ENTERED_VIA_EXPLORE] ?: false
     }
 
+    val planFilter: Flow<String> = context.dataStore.data.map { prefs ->
+        prefs[Keys.PLAN_FILTER] ?: "ALL"
+    }
+
+    val ideaCategoryFilter: Flow<String> = context.dataStore.data.map { prefs ->
+        prefs[Keys.IDEA_CATEGORY_FILTER] ?: "all"
+    }
+
     suspend fun setThemeMode(mode: String) {
-        context.dataStore.edit { prefs ->
-            prefs[Keys.THEME_MODE] = mode
-        }
+        context.dataStore.edit { prefs -> prefs[Keys.THEME_MODE] = mode }
     }
 
     suspend fun setOnboardingComplete(complete: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[Keys.ONBOARDING_COMPLETE] = complete
-        }
+        context.dataStore.edit { prefs -> prefs[Keys.ONBOARDING_COMPLETE] = complete }
     }
 
     suspend fun setNotificationsPrompted(prompted: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[Keys.NOTIFICATIONS_PROMPTED] = prompted
-        }
+        context.dataStore.edit { prefs -> prefs[Keys.NOTIFICATIONS_PROMPTED] = prompted }
     }
 
     suspend fun setNotificationsEnabled(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[Keys.NOTIFICATIONS_ENABLED] = enabled
-        }
+        context.dataStore.edit { prefs -> prefs[Keys.NOTIFICATIONS_ENABLED] = enabled }
+    }
+
+    suspend fun setPlanFilter(filter: String) {
+        context.dataStore.edit { prefs -> prefs[Keys.PLAN_FILTER] = filter }
+    }
+
+    suspend fun setIdeaCategoryFilter(filter: String) {
+        context.dataStore.edit { prefs -> prefs[Keys.IDEA_CATEGORY_FILTER] = filter }
     }
 
     suspend fun setEnteredViaExplore(explore: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[Keys.ENTERED_VIA_EXPLORE] = explore
-        }
+        context.dataStore.edit { prefs -> prefs[Keys.ENTERED_VIA_EXPLORE] = explore }
     }
 
     suspend fun completeOnboardingAfterSetup(notificationsGranted: Boolean) {
