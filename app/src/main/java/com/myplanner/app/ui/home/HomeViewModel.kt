@@ -26,7 +26,8 @@ data class PlanItem(
     val kind: PlanKind,
     val title: String,
     val atMillis: Long?,
-    val completed: Boolean
+    val completed: Boolean,
+    val priority: Int = 0
 ) {
     fun isOverdue(now: Long): Boolean =
         !completed && atMillis != null && atMillis < now
@@ -47,7 +48,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = AppDatabase.getInstance(application)
     val taskRepository = TaskRepository(db.taskDao())
-    val reminderRepository = ReminderRepository(db.reminderDao())
+    val reminderRepository = ReminderRepository.create(application, db.reminderDao())
     val noteRepository = NoteRepository(db.noteDao())
     val ideaRepository = IdeaRepository(db.ideaDao())
     val voiceNoteRepository = VoiceNoteRepository(db.voiceNoteDao())
@@ -65,9 +66,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         val now = System.currentTimeMillis()
 
         val taskItems = tasks.map {
-            PlanItem(it.id, PlanKind.TASK, it.title, it.dueAtEpochMillis, it.completed)
+            PlanItem(it.id, PlanKind.TASK, it.title, it.dueAtEpochMillis, it.completed, it.priority)
         }
-        val reminderItems = reminders.map {
+        val reminderItems = reminders.filter { !it.cancelled }.map {
             PlanItem(it.id, PlanKind.REMINDER, it.title, it.triggerAtEpochMillis, it.completed)
         }
         val all = taskItems + reminderItems
@@ -83,6 +84,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             }
         }.sortedWith(
             compareBy<PlanItem> { it.completed }
+                .thenByDescending { it.priority }
                 .thenBy { it.atMillis ?: Long.MAX_VALUE }
         )
 
@@ -101,11 +103,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             recentNotes = notes.size,
             recentIdeas = ideas.size
         )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = HomeUiState()
-    )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 
     fun toggleItem(item: PlanItem) {
         viewModelScope.launch {
