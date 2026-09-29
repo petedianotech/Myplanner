@@ -17,29 +17,49 @@ import com.myplanner.app.ui.theme.AppGradients
 import com.myplanner.app.ui.theme.AppShapes
 import com.myplanner.app.ui.theme.Spacing
 
+/** Neutral information card — default for content blocks. */
 @Composable
 fun AppCard(
     modifier: Modifier = Modifier,
     elevated: Boolean = false,
+    onClick: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = AppShapes.card,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (elevated) AppDimens.cardElevationRaised else AppDimens.cardElevation
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(Spacing.cardPadding),
-            content = content
-        )
+    val colors = CardDefaults.cardColors(
+        containerColor = MaterialTheme.colorScheme.surface
+    )
+    val elevation = CardDefaults.cardElevation(
+        defaultElevation = if (elevated) AppDimens.cardElevationRaised else AppDimens.cardElevation
+    )
+    if (onClick != null) {
+        Card(
+            onClick = onClick,
+            modifier = modifier.fillMaxWidth(),
+            shape = AppShapes.card,
+            colors = colors,
+            elevation = elevation
+        ) {
+            Column(
+                modifier = Modifier.padding(Spacing.cardPadding),
+                content = content
+            )
+        }
+    } else {
+        Card(
+            modifier = modifier.fillMaxWidth(),
+            shape = AppShapes.card,
+            colors = colors,
+            elevation = elevation
+        ) {
+            Column(
+                modifier = Modifier.padding(Spacing.cardPadding),
+                content = content
+            )
+        }
     }
 }
 
+/** Subtle tinted surface for grouped secondary content. */
 @Composable
 fun AppSurfaceCard(
     modifier: Modifier = Modifier,
@@ -60,6 +80,10 @@ fun AppSurfaceCard(
     }
 }
 
+/**
+ * Hero / summary card with brand gradient.
+ * Reserve for important summary moments only — not default card styling.
+ */
 @Composable
 fun AppHeroCard(
     modifier: Modifier = Modifier,
@@ -75,6 +99,7 @@ fun AppHeroCard(
     )
 }
 
+/** Soft primary-tinted card for emphasis without full gradient. */
 @Composable
 fun AppTintedCard(
     modifier: Modifier = Modifier,
