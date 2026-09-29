@@ -1,13 +1,17 @@
 package com.myplanner.app.data.local
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-/**
- * Personal task — offline source of truth.
- * priority: 0=none, 1=low, 2=medium, 3=high
- */
-@Entity(tableName = "tasks")
+@Entity(
+    tableName = "tasks",
+    indices = [
+        Index(value = ["dueAtEpochMillis"]),
+        Index(value = ["completed", "dueAtEpochMillis"]),
+        Index(value = ["title"])
+    ]
+)
 data class TaskEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,
