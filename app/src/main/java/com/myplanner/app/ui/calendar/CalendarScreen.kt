@@ -74,33 +74,35 @@ fun CalendarScreen(
     onBack: () -> Unit,
     viewModel: HomeViewModel = viewModel()
 ) {
-    val tasks by viewModel.taskRepository.observeTasks().collectAsStateWithLifecycle(emptyList())
-    val reminders by viewModel.reminderRepository.observeReminders().collectAsStateWithLifecycle(emptyList())
     val zone = ZoneId.systemDefault()
     val today = LocalDate.now(zone)
     var visibleMonth by remember { mutableStateOf(YearMonth.from(today)) }
     var selected by remember { mutableStateOf(today) }
     val (monthStart, monthEnd) = remember(visibleMonth) { monthBounds(visibleMonth, zone) }
-    val itemsByDate by remember(tasks, reminders, visibleMonth) {
+
+    val tasks by viewModel.taskRepository.observeDueBetween(monthStart, monthEnd)
+        .collectAsStateWithLifecycle(emptyList())
+    val reminders by viewModel.reminderRepository.observeTriggerBetween(monthStart, monthEnd)
+        .collectAsStateWithLifecycle(emptyList())
+
+    val itemsByDate by remember(tasks, reminders) {
         derivedStateOf {
             val map = mutableMapOf<LocalDate, MutableList<PlanItem>>()
             tasks.forEach { task ->
                 val due = task.dueAtEpochMillis ?: return@forEach
-                if (due in monthStart until monthEnd) {
-                    map.getOrPut(due.toLocalDate(zone)) { mutableListOf() }.add(
-                        PlanItem(task.id, PlanKind.TASK, task.title, due, task.completed, task.priority)
-                    )
-                }
+                map.getOrPut(due.toLocalDate(zone)) { mutableListOf() }.add(
+                    PlanItem(task.id, PlanKind.TASK, task.title, due, task.completed, task.priority)
+                )
             }
-            reminders.filter { !it.cancelled }.forEach { rem ->
+            reminders.forEach { rem ->
                 val at = rem.triggerAtEpochMillis ?: return@forEach
-                if (at in monthStart until monthEnd) {
-                    map.getOrPut(at.toLocalDate(zone)) { mutableListOf() }.add(
-                        PlanItem(rem.id, PlanKind.REMINDER, rem.title, at, rem.completed)
-                    )
-                }
+                map.getOrPut(at.toLocalDate(zone)) { mutableListOf() }.add(
+                    PlanItem(rem.id, PlanKind.REMINDER, rem.title, at, rem.completed)
+                )
             }
-            map.mapValues { (_, list) -> list.sortedWith(compareBy({ it.completed }, { it.atMillis ?: Long.MAX_VALUE })) }
+            map.mapValues { (_, list) ->
+                list.sortedWith(compareBy({ it.completed }, { it.atMillis ?: Long.MAX_VALUE }))
+            }
         }
     }
     val dayItems = itemsByDate[selected].orEmpty()
