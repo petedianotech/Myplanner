@@ -5,7 +5,8 @@ import androidx.room.PrimaryKey
 
 /**
  * Local reminder with optional recurrence.
- * repeatType: none | daily | weekly | monthly
+ * Missed is derived: past trigger, not completed, not cancelled.
+ * lastFiredAt prevents duplicate notifications for the same occurrence.
  */
 @Entity(tableName = "reminders")
 data class ReminderEntity(
@@ -17,6 +18,7 @@ data class ReminderEntity(
     val completed: Boolean = false,
     val cancelled: Boolean = false,
     val completedAtEpochMillis: Long? = null,
+    val lastFiredAtEpochMillis: Long? = null,
     val createdAtEpochMillis: Long = System.currentTimeMillis(),
     val updatedAtEpochMillis: Long = System.currentTimeMillis()
 ) {
@@ -29,4 +31,9 @@ data class ReminderEntity(
 
     val isActive: Boolean
         get() = !completed && !cancelled && triggerAtEpochMillis != null
+
+    fun isMissed(now: Long = System.currentTimeMillis()): Boolean {
+        val at = triggerAtEpochMillis ?: return false
+        return !completed && !cancelled && at < now
+    }
 }
