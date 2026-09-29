@@ -39,26 +39,27 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.myplanner.app.data.local.PreferencesRepository
+import com.myplanner.app.ui.calendar.CalendarScreen
 import com.myplanner.app.ui.capture.CaptureType
 import com.myplanner.app.ui.capture.QuickCaptureSheet
 import com.myplanner.app.ui.hello.HelloScreen
 import com.myplanner.app.ui.home.HomeScreen
 import com.myplanner.app.ui.home.HomeViewModel
 import com.myplanner.app.ui.home.PlanKind
-import com.myplanner.app.ui.idea.CreateIdeaScreen
 import com.myplanner.app.ui.idea.IdeaEditorScreen
 import com.myplanner.app.ui.idea.IdeasScreen
-import com.myplanner.app.ui.note.CreateNoteScreen
 import com.myplanner.app.ui.note.NoteEditorScreen
 import com.myplanner.app.ui.note.NotesScreen
 import com.myplanner.app.ui.plans.PlansScreen
 import com.myplanner.app.ui.reminder.CreateFirstReminderScreen
 import com.myplanner.app.ui.reminder.CreateReminderScreen
 import com.myplanner.app.ui.reminder.ReminderEditorScreen
+import com.myplanner.app.ui.search.SearchScreen
 import com.myplanner.app.ui.setup.FirstReminderPromptScreen
 import com.myplanner.app.ui.setup.NotificationSetupScreen
 import com.myplanner.app.ui.task.CreateTaskScreen
 import com.myplanner.app.ui.task.TaskEditorScreen
+import com.myplanner.app.ui.upcoming.UpcomingScreen
 import com.myplanner.app.ui.voice.VoiceNotePlayerScreen
 import com.myplanner.app.ui.voice.VoiceNoteScreen
 import com.myplanner.app.ui.voice.VoiceNotesListScreen
@@ -81,12 +82,14 @@ object Routes {
     const val CREATE_IDEA = "create_idea"
     const val CREATE_VOICE = "create_voice"
     const val VOICE_NOTES = "voice_notes"
+    const val CALENDAR = "calendar"
+    const val UPCOMING = "upcoming"
+    const val SEARCH = "search"
     const val VOICE_DETAIL = "voice_detail/{noteId}"
     const val EDIT_TASK = "edit_task/{taskId}"
     const val EDIT_REMINDER = "edit_reminder/{reminderId}"
     const val EDIT_NOTE = "edit_note/{noteId}"
     const val EDIT_IDEA = "edit_idea/{ideaId}"
-
     fun editTask(id: Long) = "edit_task/$id"
     fun editReminder(id: Long) = "edit_reminder/$id"
     fun editNote(id: Long) = "edit_note/$id"
@@ -106,27 +109,22 @@ fun MyPlannerNavGraph(
     val scope = rememberCoroutineScope()
     var startReady by remember { mutableStateOf(false) }
     var onboardingComplete by remember { mutableStateOf(false) }
-
     LaunchedEffect(preferencesRepository) {
         onboardingComplete = preferencesRepository.onboardingComplete.first()
         startReady = true
     }
-
     LaunchedEffect(openReminderId, startReady, onboardingComplete) {
         if (startReady && onboardingComplete && openReminderId != null && openReminderId > 0) {
             navController.navigate(Routes.editReminder(openReminderId)) { launchSingleTop = true }
         }
     }
-
     if (!startReady) {
         Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
         return
     }
-
     val startDestination = if (onboardingComplete) Routes.MAIN else Routes.HELLO
-
     NavHost(navController = navController, startDestination = startDestination, modifier = modifier) {
         composable(Routes.HELLO) {
             HelloScreen(
@@ -134,10 +132,7 @@ fun MyPlannerNavGraph(
                 onExploreFirst = {
                     scope.launch {
                         preferencesRepository.completeOnboardingViaExplore()
-                        navController.navigate(Routes.MAIN) {
-                            popUpTo(Routes.HELLO) { inclusive = true }
-                            launchSingleTop = true
-                        }
+                        navController.navigate(Routes.MAIN) { popUpTo(Routes.HELLO) { inclusive = true }; launchSingleTop = true }
                     }
                 }
             )
@@ -160,10 +155,7 @@ fun MyPlannerNavGraph(
                     scope.launch {
                         val granted = preferencesRepository.notificationsEnabled.first()
                         preferencesRepository.completeOnboardingAfterSetup(granted)
-                        navController.navigate(Routes.MAIN) {
-                            popUpTo(Routes.HELLO) { inclusive = true }
-                            launchSingleTop = true
-                        }
+                        navController.navigate(Routes.MAIN) { popUpTo(Routes.HELLO) { inclusive = true }; launchSingleTop = true }
                     }
                 }
             )
@@ -176,10 +168,7 @@ fun MyPlannerNavGraph(
                     homeVm.reminderRepository.createReminder(title, notes)
                     val granted = preferencesRepository.notificationsEnabled.first()
                     preferencesRepository.completeOnboardingAfterSetup(granted)
-                    navController.navigate(Routes.MAIN) {
-                        popUpTo(Routes.HELLO) { inclusive = true }
-                        launchSingleTop = true
-                    }
+                    navController.navigate(Routes.MAIN) { popUpTo(Routes.HELLO) { inclusive = true }; launchSingleTop = true }
                 },
                 onCancel = { navController.popBackStack() }
             )
@@ -188,44 +177,27 @@ fun MyPlannerNavGraph(
         composable(Routes.CREATE_TASK) {
             val homeVm: HomeViewModel = viewModel()
             CreateTaskScreen(
-                onSave = { title, notes, dueAt, priority ->
-                    homeVm.taskRepository.createTask(title, notes, dueAt, priority)
-                    navController.popBackStack()
-                },
+                onSave = { title, notes, dueAt, priority -> homeVm.taskRepository.createTask(title, notes, dueAt, priority); navController.popBackStack() },
                 onCancel = { navController.popBackStack() }
             )
         }
         composable(Routes.CREATE_REMINDER) {
             val homeVm: HomeViewModel = viewModel()
             CreateReminderScreen(
-                onSave = { title, notes, at, repeat ->
-                    homeVm.reminderRepository.createReminder(title, notes, at, repeat)
-                    navController.popBackStack()
-                },
+                onSave = { title, notes, at, repeat -> homeVm.reminderRepository.createReminder(title, notes, at, repeat); navController.popBackStack() },
                 onCancel = { navController.popBackStack() }
             )
         }
         composable(Routes.CREATE_NOTE) {
-            NoteEditorScreen(
-                noteId = null,
-                onDone = { navController.popBackStack() },
-                onCancel = { navController.popBackStack() }
-            )
+            NoteEditorScreen(noteId = null, onDone = { navController.popBackStack() }, onCancel = { navController.popBackStack() })
         }
         composable(Routes.CREATE_IDEA) {
-            IdeaEditorScreen(
-                ideaId = null,
-                onDone = { navController.popBackStack() },
-                onCancel = { navController.popBackStack() }
-            )
+            IdeaEditorScreen(ideaId = null, onDone = { navController.popBackStack() }, onCancel = { navController.popBackStack() })
         }
         composable(Routes.CREATE_VOICE) {
             val homeVm: HomeViewModel = viewModel()
             VoiceNoteScreen(
-                onSave = { title, path, duration ->
-                    homeVm.voiceNoteRepository.createVoiceNote(title, path, duration)
-                    navController.popBackStack()
-                },
+                onSave = { title, path, duration -> homeVm.voiceNoteRepository.createVoiceNote(title, path, duration); navController.popBackStack() },
                 onCancel = { navController.popBackStack() }
             )
         }
@@ -235,38 +207,56 @@ fun MyPlannerNavGraph(
                 onRecord = { navController.navigate(Routes.CREATE_VOICE) }
             )
         }
-        composable(
-            route = Routes.VOICE_DETAIL,
-            arguments = listOf(navArgument("noteId") { type = NavType.LongType })
-        ) { entry ->
+        composable(Routes.VOICE_DETAIL, arguments = listOf(navArgument("noteId") { type = NavType.LongType })) { entry ->
             val noteId = entry.arguments?.getLong("noteId") ?: return@composable
             VoiceNotePlayerScreen(noteId = noteId, onDone = { navController.popBackStack() })
         }
-        composable(
-            route = Routes.EDIT_TASK,
-            arguments = listOf(navArgument("taskId") { type = NavType.LongType })
-        ) { entry ->
+        composable(Routes.CALENDAR) {
+            CalendarScreen(
+                onOpenItem = { item ->
+                    when (item.kind) {
+                        PlanKind.TASK -> navController.navigate(Routes.editTask(item.id))
+                        PlanKind.REMINDER -> navController.navigate(Routes.editReminder(item.id))
+                    }
+                },
+                onCreate = { navController.navigate(Routes.CREATE_TASK) },
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(Routes.UPCOMING) {
+            UpcomingScreen(
+                onOpenItem = { item ->
+                    when (item.kind) {
+                        PlanKind.TASK -> navController.navigate(Routes.editTask(item.id))
+                        PlanKind.REMINDER -> navController.navigate(Routes.editReminder(item.id))
+                    }
+                },
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(Routes.SEARCH) {
+            SearchScreen(
+                onOpenTask = { navController.navigate(Routes.editTask(it)) },
+                onOpenReminder = { navController.navigate(Routes.editReminder(it)) },
+                onOpenNote = { navController.navigate(Routes.editNote(it)) },
+                onOpenIdea = { navController.navigate(Routes.editIdea(it)) },
+                onOpenVoice = { navController.navigate(Routes.voiceDetail(it)) },
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(Routes.EDIT_TASK, arguments = listOf(navArgument("taskId") { type = NavType.LongType })) { entry ->
             val taskId = entry.arguments?.getLong("taskId") ?: return@composable
             TaskEditorScreen(taskId = taskId, onDone = { navController.popBackStack() }, onCancel = { navController.popBackStack() })
         }
-        composable(
-            route = Routes.EDIT_REMINDER,
-            arguments = listOf(navArgument("reminderId") { type = NavType.LongType })
-        ) { entry ->
+        composable(Routes.EDIT_REMINDER, arguments = listOf(navArgument("reminderId") { type = NavType.LongType })) { entry ->
             val reminderId = entry.arguments?.getLong("reminderId") ?: return@composable
             ReminderEditorScreen(reminderId = reminderId, onDone = { navController.popBackStack() }, onCancel = { navController.popBackStack() })
         }
-        composable(
-            route = Routes.EDIT_NOTE,
-            arguments = listOf(navArgument("noteId") { type = NavType.LongType })
-        ) { entry ->
+        composable(Routes.EDIT_NOTE, arguments = listOf(navArgument("noteId") { type = NavType.LongType })) { entry ->
             val noteId = entry.arguments?.getLong("noteId") ?: return@composable
             NoteEditorScreen(noteId = noteId, onDone = { navController.popBackStack() }, onCancel = { navController.popBackStack() })
         }
-        composable(
-            route = Routes.EDIT_IDEA,
-            arguments = listOf(navArgument("ideaId") { type = NavType.LongType })
-        ) { entry ->
+        composable(Routes.EDIT_IDEA, arguments = listOf(navArgument("ideaId") { type = NavType.LongType })) { entry ->
             val ideaId = entry.arguments?.getLong("ideaId") ?: return@composable
             IdeaEditorScreen(ideaId = ideaId, onDone = { navController.popBackStack() }, onCancel = { navController.popBackStack() })
         }
@@ -285,7 +275,6 @@ private fun MainTabs(rootNavController: NavHostController) {
     )
     val backStack by tabNav.currentBackStackEntryAsState()
     val currentRoute = backStack?.destination
-
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
@@ -322,7 +311,10 @@ private fun MainTabs(rootNavController: NavHostController) {
                             PlanKind.TASK -> rootNavController.navigate(Routes.editTask(item.id))
                             PlanKind.REMINDER -> rootNavController.navigate(Routes.editReminder(item.id))
                         }
-                    }
+                    },
+                    onOpenCalendar = { rootNavController.navigate(Routes.CALENDAR) },
+                    onOpenSearch = { rootNavController.navigate(Routes.SEARCH) },
+                    onOpenUpcoming = { rootNavController.navigate(Routes.UPCOMING) }
                 )
             }
             composable(Routes.PLANS) {
@@ -346,7 +338,6 @@ private fun MainTabs(rootNavController: NavHostController) {
             }
         }
     }
-
     if (showCapture) {
         QuickCaptureSheet(
             onSelect = { type ->
@@ -369,9 +360,5 @@ private fun MainTabs(rootNavController: NavHostController) {
 fun MyPlannerApp(modifier: Modifier = Modifier, openReminderId: Long? = null) {
     val context = LocalContext.current
     val preferencesRepository = remember { PreferencesRepository(context.applicationContext) }
-    MyPlannerNavGraph(
-        modifier = modifier,
-        preferencesRepository = preferencesRepository,
-        openReminderId = openReminderId
-    )
+    MyPlannerNavGraph(modifier = modifier, preferencesRepository = preferencesRepository, openReminderId = openReminderId)
 }
