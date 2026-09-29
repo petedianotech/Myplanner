@@ -14,6 +14,10 @@ import androidx.compose.ui.text.input.VisualTransformation
 import com.myplanner.app.ui.theme.AppDimens
 import com.myplanner.app.ui.theme.AppShapes
 
+/**
+ * Standard outlined text field for forms (tasks, notes, ideas, reminders).
+ * Clear focus, error, and disabled states with comfortable touch height.
+ */
 @Composable
 fun AppTextField(
     value: String,
@@ -26,6 +30,7 @@ fun AppTextField(
     enabled: Boolean = true,
     singleLine: Boolean = true,
     maxLines: Int = if (singleLine) 1 else 6,
+    minLines: Int = 1,
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
@@ -69,6 +74,7 @@ fun AppTextField(
         isError = isError,
         singleLine = singleLine,
         maxLines = maxLines,
+        minLines = minLines.coerceAtLeast(1),
         shape = AppShapes.textField,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = MaterialTheme.colorScheme.primary,
