@@ -9,15 +9,15 @@ import com.myplanner.app.data.repository.NoteRepository
 import com.myplanner.app.data.repository.ReminderRepository
 import com.myplanner.app.data.repository.TaskRepository
 import com.myplanner.app.data.repository.VoiceNoteRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.time.ZonedDateTime
 
 enum class PlanKind { TASK, REMINDER }
 
@@ -39,9 +39,7 @@ data class HomeUiState(
     val todayRemindersScheduled: Int = 0,
     val overdueCount: Int = 0,
     val todayItems: List<PlanItem> = emptyList(),
-    val upcomingItems: List<PlanItem> = emptyList(),
-    val recentNotes: Int = 0,
-    val recentIdeas: Int = 0
+    val upcomingItems: List<PlanItem> = emptyList()
 )
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
@@ -55,10 +53,8 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     val uiState: StateFlow<HomeUiState> = combine(
         taskRepository.observeTasks(),
-        reminderRepository.observeReminders(),
-        noteRepository.observeNotes(),
-        ideaRepository.observeIdeas()
-    ) { tasks, reminders, notes, ideas ->
+        reminderRepository.observeReminders()
+    ) { tasks, reminders ->
         val zone = ZoneId.systemDefault()
         val today = LocalDate.now(zone)
         val startOfToday = today.atStartOfDay(zone).toInstant().toEpochMilli()
@@ -68,11 +64,10 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         val taskItems = tasks.map {
             PlanItem(it.id, PlanKind.TASK, it.title, it.dueAtEpochMillis, it.completed, it.priority)
         }
-        val reminderItems = reminders
+        val reminderItems = reminders.asSequence()
             .filter { !it.cancelled }
-            .map {
-                PlanItem(it.id, PlanKind.REMINDER, it.title, it.triggerAtEpochMillis, it.completed)
-            }
+            .map { PlanItem(it.id, PlanKind.REMINDER, it.title, it.triggerAtEpochMillis, it.completed) }
+            .toList()
         val all = taskItems + reminderItems
 
         val todayItems = all.filter { item ->
@@ -90,10 +85,14 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 .thenBy { it.atMillis ?: Long.MAX_VALUE }
         )
 
-        val upcoming = all.filter { item ->
-            val at = item.atMillis ?: return@filter false
-            !item.completed && at >= startOfTomorrow
-        }.sortedBy { it.atMillis }.take(5)
+        val upcoming = all.asSequence()
+            .filter { item ->
+                val at = item.atMillis ?: return@filter false
+                !item.completed && at >= startOfTomorrow
+            }
+            .sortedBy { it.atMillis }
+            .take(5)
+            .toList()
 
         HomeUiState(
             isLoading = false,
@@ -101,15 +100,15 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             todayRemindersScheduled = todayItems.count { it.kind == PlanKind.REMINDER && !it.completed },
             overdueCount = all.count { it.isOverdue(now) },
             todayItems = todayItems,
-            upcomingItems = upcoming,
-            recentNotes = notes.size,
-            recentIdeas = ideas.size
+            upcomingItems = upcoming
         )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = HomeUiState()
-    )
+    }
+        .flowOn(Dispatchers.Default)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = HomeUiState()
+        )
 
     fun toggleItem(item: PlanItem) {
         viewModelScope.launch {
@@ -118,25 +117,5 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 PlanKind.REMINDER -> reminderRepository.setCompleted(item.id, !item.completed)
             }
         }
-    }
-}
-
-fun greetingForHour(hour: Int = ZonedDateTime.now().hour): String = when (hour) {
-    in 5..11 -> "Good morning"
-    in 12..16 -> "Good afternoon"
-    in 17..21 -> "Good evening"
-    else -> "Hello"
-}
-
-fun formatPlanTime(millis: Long?, zone: ZoneId = ZoneId.systemDefault()): String? {
-    if (millis == null) return null
-    val zdt = Instant.ofEpochMilli(millis).atZone(zone)
-    val today = LocalDate.now(zone)
-    val date = zdt.toLocalDate()
-    val time = "%02d:%02d".format(zdt.hour, zdt.minute)
-    return when (date) {
-        today -> time
-        today.plusDays(1) -> "Tomorrow · $time"
-        else -> "${date.monthValue}/${date.dayOfMonth} · $time"
     }
 }

@@ -1,9 +1,17 @@
 package com.myplanner.app.data.local
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "ideas")
+@Entity(
+    tableName = "ideas",
+    indices = [
+        Index(value = ["archived", "pinned"]),
+        Index(value = ["title"]),
+        Index(value = ["category", "status"])
+    ]
+)
 data class IdeaEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,
@@ -22,7 +30,6 @@ data class IdeaEntity(
         const val CATEGORY_SCHOOL = "school"
         const val CATEGORY_PERSONAL = "personal"
         const val CATEGORY_OTHER = "other"
-
         const val STATUS_NEW = "new"
         const val STATUS_WORKING = "working"
         const val STATUS_COMPLETED = "completed"
