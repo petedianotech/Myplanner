@@ -11,7 +11,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 /**
- * Handles reminder fire, done, and snooze without requiring the UI process to be alive.
+ * Handles alarm fire, Done, and Snooze without requiring the UI process to be alive.
+ * Missed one-shot reminders stay active (past trigger) until the user completes,
+ * snoozes, or reschedules — no endless duplicate records.
  */
 class ReminderReceiver : BroadcastReceiver() {
 
@@ -28,7 +30,13 @@ class ReminderReceiver : BroadcastReceiver() {
                 when (intent.action) {
                     ReminderScheduler.ACTION_FIRE -> handleFire(context, repo, id)
                     ReminderScheduler.ACTION_DONE -> handleDone(context, repo, id)
-                    ReminderScheduler.ACTION_SNOOZE -> handleSnooze(context, repo, id)
+                    ReminderScheduler.ACTION_SNOOZE -> {
+                        val minutes = intent.getLongExtra(
+                            ReminderScheduler.EXTRA_SNOOZE_MINUTES,
+                            ReminderScheduler.SNOOZE_MINUTES
+                        )
+                        handleSnooze(context, repo, id, minutes)
+                    }
                 }
             } finally {
                 pendingResult.finish()
@@ -43,15 +51,29 @@ class ReminderReceiver : BroadcastReceiver() {
     ) {
         val reminder = repo.getReminder(id) ?: return
         if (reminder.completed || reminder.cancelled) return
+
+        val lastFired = reminder.lastFiredAtEpochMillis
+        val trigger = reminder.triggerAtEpochMillis ?: return
+        if (lastFired != null && lastFired >= trigger) {
+            return
+        }
+
+        repo.markFired(id)
+        val isMissed = trigger < System.currentTimeMillis() - 60_000L
         NotificationHelper.showReminderNotification(
             context = context,
             reminderId = id,
             title = reminder.title,
-            notes = reminder.notes
+            notes = reminder.notes,
+            isMissed = isMissed
         )
+
         when (reminder.repeatType) {
-            ReminderEntity.REPEAT_NONE -> Unit
-            else -> repo.advanceRecurrence(id)
+            ReminderEntity.REPEAT_NONE -> {
+            }
+            else -> {
+                repo.advanceRecurrence(id)
+            }
         }
     }
 
@@ -67,18 +89,12 @@ class ReminderReceiver : BroadcastReceiver() {
     private suspend fun handleSnooze(
         context: Context,
         repo: ReminderRepository,
-        id: Long
+        id: Long,
+        minutes: Long
     ) {
         val reminder = repo.getReminder(id) ?: return
-        val snoozeAt = System.currentTimeMillis() +
-            ReminderScheduler.SNOOZE_MINUTES * 60_000L
-        repo.updateReminder(
-            reminder.copy(
-                triggerAtEpochMillis = snoozeAt,
-                completed = false,
-                cancelled = false
-            )
-        )
+        if (reminder.completed || reminder.cancelled) return
+        repo.snoozeMinutes(id, minutes.coerceAtLeast(1L))
         NotificationHelper.cancelNotification(context, id)
     }
 }

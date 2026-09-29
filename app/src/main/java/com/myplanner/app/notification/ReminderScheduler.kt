@@ -5,7 +5,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import com.myplanner.app.MainActivity
 import com.myplanner.app.data.local.ReminderEntity
 
 /**
@@ -35,7 +34,7 @@ class ReminderScheduler(private val context: Context) {
                 val showIntent = PendingIntent.getActivity(
                     context,
                     requestCode(reminder.id),
-                    Intent(context, MainActivity::class.java).apply {
+                    Intent(context, Class.forName("com.myplanner.app.MainActivity")).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
                         putExtra(EXTRA_REMINDER_ID, reminder.id)
                     },
@@ -88,7 +87,9 @@ class ReminderScheduler(private val context: Context) {
         const val ACTION_SNOOZE = "com.myplanner.app.action.REMINDER_SNOOZE"
         const val EXTRA_REMINDER_ID = "extra_reminder_id"
         const val EXTRA_REMINDER_TITLE = "extra_reminder_title"
-        const val SNOOZE_MINUTES = 15L
+        const val EXTRA_SNOOZE_MINUTES = "extra_snooze_minutes"
+        const val SNOOZE_MINUTES = 10L
+        const val SNOOZE_30_MINUTES = 30L
 
         fun requestCode(reminderId: Long): Int {
             return (reminderId xor (reminderId ushr 32)).toInt()
