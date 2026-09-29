@@ -1,5 +1,6 @@
 package com.myplanner.app.ui.home
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -45,6 +46,7 @@ import java.util.Locale
 @Composable
 fun HomeScreen(
     onQuickCapture: () -> Unit,
+    onOpenItem: (PlanItem) -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel()
 ) {
@@ -102,13 +104,13 @@ fun HomeScreen(
                         )
                     }
                     items(state.todayItems, key = { "${it.kind}-${it.id}" }) { item ->
-                        PlanRow(item) { viewModel.toggleItem(item) }
+                        PlanRow(item, onToggle = { viewModel.toggleItem(item) }, onOpen = { onOpenItem(item) })
                         AppDivider()
                     }
                     if (state.upcomingItems.isNotEmpty()) {
                         item { SectionHeader(title = "Upcoming") }
                         items(state.upcomingItems, key = { "up-${it.kind}-${it.id}" }) { item ->
-                            PlanRow(item) { viewModel.toggleItem(item) }
+                            PlanRow(item, onToggle = { viewModel.toggleItem(item) }, onOpen = { onOpenItem(item) })
                             AppDivider()
                         }
                     }
@@ -136,7 +138,8 @@ private fun TodaySummaryCard(state: HomeUiState) {
         Text(
             text = when {
                 state.overdueCount > 0 -> "A few things are overdue — tackle those first if you can."
-                state.todayTasksRemaining == 0 && state.todayRemindersScheduled == 0 -> "A quiet day. Capture something when it comes to mind."
+                state.todayTasksRemaining == 0 && state.todayRemindersScheduled == 0 ->
+                    "A quiet day. Capture something when it comes to mind."
                 else -> "Stay with the next item. The rest can wait."
             },
             style = MaterialTheme.typography.bodyMedium,
@@ -146,7 +149,7 @@ private fun TodaySummaryCard(state: HomeUiState) {
 }
 
 @Composable
-private fun PlanRow(item: PlanItem, onToggle: () -> Unit) {
+private fun PlanRow(item: PlanItem, onToggle: () -> Unit, onOpen: () -> Unit = {}) {
     val overdue = item.isOverdue(System.currentTimeMillis())
     val timeLabel = formatPlanTime(item.atMillis)
     val supporting = buildString {
@@ -154,7 +157,10 @@ private fun PlanRow(item: PlanItem, onToggle: () -> Unit) {
         if (timeLabel != null) append(" · $timeLabel")
         if (overdue) append(" · Overdue")
     }
-    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onOpen),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         AppIconButton(
             icon = if (item.completed) Icons.Outlined.CheckCircle else Icons.Outlined.RadioButtonUnchecked,
             contentDescription = if (item.completed) "Mark incomplete" else "Mark complete",
