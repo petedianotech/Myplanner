@@ -4,16 +4,59 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ReminderDao {
-    @Query("SELECT * FROM reminders ORDER BY completed ASC, triggerAtEpochMillis IS NULL, triggerAtEpochMillis ASC, createdAtEpochMillis DESC")
+    @Query("""
+        SELECT * FROM reminders
+        ORDER BY completed ASC, cancelled ASC,
+                 CASE WHEN triggerAtEpochMillis IS NULL THEN 1 ELSE 0 END,
+                 triggerAtEpochMillis ASC,
+                 createdAtEpochMillis DESC
+        """)
     fun observeAll(): Flow<List<ReminderEntity>>
+
+    @Query("""
+        SELECT * FROM reminders
+        WHERE completed = 0 AND cancelled = 0 AND triggerAtEpochMillis IS NOT NULL
+        """)
+    suspend fun getActiveScheduled(): List<ReminderEntity>
+
+    @Query("SELECT * FROM reminders WHERE id = :id LIMIT 1")
+    suspend fun getById(id: Long): ReminderEntity?
+
+    @Query("SELECT * FROM reminders WHERE id = :id LIMIT 1")
+    fun observeById(id: Long): Flow<ReminderEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(reminder: ReminderEntity): Long
 
-    @Query("UPDATE reminders SET completed = :completed WHERE id = :id")
-    suspend fun setCompleted(id: Long, completed: Boolean)
+    @Update
+    suspend fun update(reminder: ReminderEntity)
+
+    @Query("""
+        UPDATE reminders SET completed = :completed,
+            completedAtEpochMillis = :completedAt,
+            updatedAtEpochMillis = :updatedAt
+        WHERE id = :id
+        """)
+    suspend fun setCompleted(id: Long, completed: Boolean, completedAt: Long?, updatedAt: Long)
+
+    @Query("""
+        UPDATE reminders SET cancelled = 1, updatedAtEpochMillis = :updatedAt
+        WHERE id = :id
+        """)
+    suspend fun cancel(id: Long, updatedAt: Long)
+
+    @Query("DELETE FROM reminders WHERE id = :id")
+    suspend fun deleteById(id: Long)
+
+    @Query("""
+        UPDATE reminders SET triggerAtEpochMillis = :triggerAt,
+            updatedAtEpochMillis = :updatedAt
+        WHERE id = :id
+        """)
+    suspend fun updateTrigger(id: Long, triggerAt: Long, updatedAt: Long)
 }

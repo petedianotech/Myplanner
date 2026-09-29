@@ -4,16 +4,41 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TaskDao {
-    @Query("SELECT * FROM tasks ORDER BY completed ASC, dueAtEpochMillis IS NULL, dueAtEpochMillis ASC, createdAtEpochMillis DESC")
+    @Query("""
+        SELECT * FROM tasks
+        ORDER BY completed ASC,
+                 CASE WHEN dueAtEpochMillis IS NULL THEN 1 ELSE 0 END,
+                 dueAtEpochMillis ASC,
+                 priority DESC,
+                 createdAtEpochMillis DESC
+        """)
     fun observeAll(): Flow<List<TaskEntity>>
+
+    @Query("SELECT * FROM tasks WHERE id = :id LIMIT 1")
+    suspend fun getById(id: Long): TaskEntity?
+
+    @Query("SELECT * FROM tasks WHERE id = :id LIMIT 1")
+    fun observeById(id: Long): Flow<TaskEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(task: TaskEntity): Long
 
-    @Query("UPDATE tasks SET completed = :completed WHERE id = :id")
-    suspend fun setCompleted(id: Long, completed: Boolean)
+    @Update
+    suspend fun update(task: TaskEntity)
+
+    @Query("""
+        UPDATE tasks SET completed = :completed,
+            completedAtEpochMillis = :completedAt,
+            updatedAtEpochMillis = :updatedAt
+        WHERE id = :id
+        """)
+    suspend fun setCompleted(id: Long, completed: Boolean, completedAt: Long?, updatedAt: Long)
+
+    @Query("DELETE FROM tasks WHERE id = :id")
+    suspend fun deleteById(id: Long)
 }
