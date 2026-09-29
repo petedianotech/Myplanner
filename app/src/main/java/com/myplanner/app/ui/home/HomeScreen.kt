@@ -15,12 +15,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Alarm
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -47,23 +50,20 @@ import java.util.Locale
 fun HomeScreen(
     onQuickCapture: () -> Unit,
     onOpenItem: (PlanItem) -> Unit = {},
+    onOpenCalendar: () -> Unit = {},
+    onOpenSearch: () -> Unit = {},
+    onOpenUpcoming: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val dateLabel = LocalDate.now().format(
-        DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.getDefault())
-    )
+    val dateLabel = LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.getDefault()))
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         floatingActionButton = {
-            AppFab(
-                icon = Icons.Outlined.Add,
-                contentDescription = "Quick capture",
-                onClick = onQuickCapture
-            )
+            AppFab(icon = Icons.Outlined.Add, contentDescription = "Quick capture", onClick = onQuickCapture)
         }
     ) { innerPadding ->
         if (state.isLoading) {
@@ -71,17 +71,18 @@ fun HomeScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
-                contentPadding = PaddingValues(
-                    start = Spacing.screenHorizontal,
-                    end = Spacing.screenHorizontal,
-                    top = Spacing.lg,
-                    bottom = Spacing.huge
-                ),
+                contentPadding = PaddingValues(start = Spacing.screenHorizontal, end = Spacing.screenHorizontal, top = Spacing.lg, bottom = Spacing.huge),
                 verticalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
                 item {
-                    Text(greetingForHour(), style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
-                    Text(dateLabel, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                        Column(Modifier.weight(1f)) {
+                            Text(greetingForHour(), style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
+                            Text(dateLabel, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                        AppIconButton(icon = Icons.Outlined.Search, contentDescription = "Search", onClick = onOpenSearch)
+                        AppIconButton(icon = Icons.Outlined.CalendarMonth, contentDescription = "Calendar", onClick = onOpenCalendar)
+                    }
                 }
                 item { TodaySummaryCard(state) }
                 if (state.todayItems.isEmpty() && state.upcomingItems.isEmpty()) {
@@ -90,25 +91,22 @@ fun HomeScreen(
                             EmptyState(
                                 title = "Nothing planned today",
                                 message = "Capture a task or reminder to give this day a shape.",
-                                action = {
-                                    AppPrimaryButton(text = "Quick capture", onClick = onQuickCapture, leadingIcon = Icons.Outlined.Add)
-                                }
+                                action = { AppPrimaryButton(text = "Quick capture", onClick = onQuickCapture, leadingIcon = Icons.Outlined.Add) }
                             )
                         }
                     }
                 } else {
                     item {
-                        SectionHeader(
-                            title = "Today",
-                            subtitle = if (state.overdueCount > 0) "${state.overdueCount} overdue" else null
-                        )
+                        SectionHeader(title = "Today", subtitle = if (state.overdueCount > 0) "${state.overdueCount} overdue" else null)
                     }
                     items(state.todayItems, key = { "${it.kind}-${it.id}" }) { item ->
                         PlanRow(item, onToggle = { viewModel.toggleItem(item) }, onOpen = { onOpenItem(item) })
                         AppDivider()
                     }
                     if (state.upcomingItems.isNotEmpty()) {
-                        item { SectionHeader(title = "Upcoming") }
+                        item {
+                            SectionHeader(title = "Upcoming", action = { TextButton(onClick = onOpenUpcoming) { Text("See all") } })
+                        }
                         items(state.upcomingItems, key = { "up-${it.kind}-${it.id}" }) { item ->
                             PlanRow(item, onToggle = { viewModel.toggleItem(item) }, onOpen = { onOpenItem(item) })
                             AppDivider()
@@ -138,8 +136,7 @@ private fun TodaySummaryCard(state: HomeUiState) {
         Text(
             text = when {
                 state.overdueCount > 0 -> "A few things are overdue — tackle those first if you can."
-                state.todayTasksRemaining == 0 && state.todayRemindersScheduled == 0 ->
-                    "A quiet day. Capture something when it comes to mind."
+                state.todayTasksRemaining == 0 && state.todayRemindersScheduled == 0 -> "A quiet day. Capture something when it comes to mind."
                 else -> "Stay with the next item. The rest can wait."
             },
             style = MaterialTheme.typography.bodyMedium,
@@ -157,18 +154,13 @@ private fun PlanRow(item: PlanItem, onToggle: () -> Unit, onOpen: () -> Unit = {
         if (timeLabel != null) append(" · $timeLabel")
         if (overdue) append(" · Overdue")
     }
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onOpen),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Row(Modifier.fillMaxWidth().clickable(onClick = onOpen), verticalAlignment = Alignment.CenterVertically) {
         AppIconButton(
             icon = if (item.completed) Icons.Outlined.CheckCircle else Icons.Outlined.RadioButtonUnchecked,
             contentDescription = if (item.completed) "Mark incomplete" else "Mark complete",
             onClick = onToggle
         )
-        Column(
-            modifier = Modifier.weight(1f).padding(vertical = Spacing.sm).then(if (item.completed) Modifier.alpha(0.55f) else Modifier)
-        ) {
+        Column(Modifier.weight(1f).padding(vertical = Spacing.sm).then(if (item.completed) Modifier.alpha(0.55f) else Modifier)) {
             Text(
                 text = item.title,
                 style = MaterialTheme.typography.bodyLarge,
