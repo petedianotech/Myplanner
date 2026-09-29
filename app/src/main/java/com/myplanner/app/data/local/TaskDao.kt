@@ -9,14 +9,16 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TaskDao {
-    @Query("""
+    @Query(
+        """
         SELECT * FROM tasks
         ORDER BY completed ASC,
                  CASE WHEN dueAtEpochMillis IS NULL THEN 1 ELSE 0 END,
                  dueAtEpochMillis ASC,
                  priority DESC,
                  createdAtEpochMillis DESC
-        """)
+        """
+    )
     fun observeAll(): Flow<List<TaskEntity>>
 
     @Query("SELECT * FROM tasks WHERE id = :id LIMIT 1")
@@ -31,14 +33,38 @@ interface TaskDao {
     @Update
     suspend fun update(task: TaskEntity)
 
-    @Query("""
+    @Query(
+        """
         UPDATE tasks SET completed = :completed,
             completedAtEpochMillis = :completedAt,
             updatedAtEpochMillis = :updatedAt
         WHERE id = :id
-        """)
+        """
+    )
     suspend fun setCompleted(id: Long, completed: Boolean, completedAt: Long?, updatedAt: Long)
 
     @Query("DELETE FROM tasks WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Query(
+        """
+        SELECT * FROM tasks
+        WHERE dueAtEpochMillis IS NOT NULL
+          AND dueAtEpochMillis >= :startInclusive
+          AND dueAtEpochMillis < :endExclusive
+        ORDER BY dueAtEpochMillis ASC, priority DESC
+        """
+    )
+    fun observeDueBetween(startInclusive: Long, endExclusive: Long): Flow<List<TaskEntity>>
+
+    @Query(
+        """
+        SELECT * FROM tasks
+        WHERE title LIKE '%' || :query || '%'
+           OR notes LIKE '%' || :query || '%'
+        ORDER BY completed ASC, updatedAtEpochMillis DESC
+        LIMIT 50
+        """
+    )
+    fun search(query: String): Flow<List<TaskEntity>>
 }

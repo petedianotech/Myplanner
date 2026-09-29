@@ -60,4 +60,17 @@ interface IdeaDao {
         """
     )
     suspend fun setArchived(id: Long, archived: Boolean, status: String, updatedAt: Long)
+
+    @Query(
+        """
+        SELECT * FROM ideas
+        WHERE title LIKE '%' || :query || '%'
+           OR body LIKE '%' || :query || '%'
+           OR category LIKE '%' || :query || '%'
+           OR status LIKE '%' || :query || '%'
+        ORDER BY pinned DESC, updatedAtEpochMillis DESC
+        LIMIT 50
+        """
+    )
+    fun search(query: String): Flow<List<IdeaEntity>>
 }
