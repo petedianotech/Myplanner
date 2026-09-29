@@ -29,4 +29,15 @@ interface VoiceNoteDao {
 
     @Query("DELETE FROM voice_notes WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Query(
+        """
+        SELECT * FROM voice_notes
+        WHERE title LIKE '%' || :query || '%'
+           OR description LIKE '%' || :query || '%'
+        ORDER BY createdAtEpochMillis DESC
+        LIMIT 50
+        """
+    )
+    fun search(query: String): Flow<List<VoiceNoteEntity>>
 }
