@@ -90,6 +90,7 @@ class ReminderScheduler(private val context: Context) {
         const val EXTRA_SNOOZE_MINUTES = "extra_snooze_minutes"
         const val SNOOZE_MINUTES = 10L
         const val SNOOZE_30_MINUTES = 30L
+        const val SNOOZE_60_MINUTES = 60L
 
         fun requestCode(reminderId: Long): Int {
             return (reminderId xor (reminderId ushr 32)).toInt()

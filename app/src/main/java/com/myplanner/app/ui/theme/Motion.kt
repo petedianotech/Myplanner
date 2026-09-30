@@ -1,15 +1,19 @@
 package com.myplanner.app.ui.theme
 
 import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 
 /**
  * Restrained motion tokens for MyPlanner.
- * Prefer short, ease-out transitions. Avoid bounce and spin.
+ * Prefer short, ease-out transitions. Soft spring for completion feedback.
  */
 object AppMotion {
     const val ShortMs = 150
@@ -23,6 +27,11 @@ object AppMotion {
     fun <T> mediumTween() = tween<T>(durationMillis = MediumMs, easing = EaseOut)
     fun <T> longTween() = tween<T>(durationMillis = LongMs, easing = EaseInOut)
 
+    fun <T> softSpring() = spring<T>(
+        dampingRatio = Spring.DampingRatioMediumBouncy,
+        stiffness = Spring.StiffnessMediumLow
+    )
+
     val fadeInShort = fadeIn(animationSpec = shortTween())
     val fadeOutShort = fadeOut(animationSpec = shortTween())
 
@@ -35,4 +44,14 @@ object AppMotion {
         animationSpec = mediumTween(),
         targetOffsetY = { it / 4 }
     ) + fadeOut(animationSpec = mediumTween())
+
+    val completeEnter = scaleIn(
+        animationSpec = softSpring(),
+        initialScale = 0.92f
+    ) + fadeIn(animationSpec = shortTween())
+
+    val completeExit = scaleOut(
+        animationSpec = shortTween(),
+        targetScale = 0.92f
+    ) + fadeOut(animationSpec = shortTween())
 }

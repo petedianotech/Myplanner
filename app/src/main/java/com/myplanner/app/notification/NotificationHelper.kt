@@ -70,22 +70,13 @@ object NotificationHelper {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val snoozeIntent = Intent(context, ReminderReceiver::class.java).apply {
-            action = ReminderScheduler.ACTION_SNOOZE
-            putExtra(ReminderScheduler.EXTRA_REMINDER_ID, reminderId)
-            putExtra(ReminderScheduler.EXTRA_SNOOZE_MINUTES, ReminderScheduler.SNOOZE_MINUTES)
-        }
-        val snoozePending = PendingIntent.getBroadcast(
-            context,
-            ReminderScheduler.requestCode(reminderId) + 2,
-            snoozeIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        val snooze10 = snoozePending(context, reminderId, ReminderScheduler.SNOOZE_MINUTES, 2)
+        val snooze60 = snoozePending(context, reminderId, ReminderScheduler.SNOOZE_60_MINUTES, 3)
 
         val body = when {
             notes.isNotBlank() -> notes
-            isMissed -> "Missed · Tap to open, mark done, or snooze"
-            else -> "Tap to open · Done or snooze from here"
+            isMissed -> "Missed · Mark done or snooze from here"
+            else -> "Done · Snooze 10m · Snooze 1h"
         }
         val contentTitle = if (isMissed) {
             "Missed: ${title.ifBlank { "Reminder" }}"
@@ -108,7 +99,8 @@ object NotificationHelper {
             }
             .setContentIntent(openPending)
             .addAction(0, "Done", donePending)
-            .addAction(0, "Snooze ${ReminderScheduler.SNOOZE_MINUTES}m", snoozePending)
+            .addAction(0, "Snooze 10m", snooze10)
+            .addAction(0, "Snooze 1h", snooze60)
             .build()
 
         try {
@@ -116,6 +108,25 @@ object NotificationHelper {
                 .notify(notificationId(reminderId), notification)
         } catch (_: SecurityException) {
         }
+    }
+
+    private fun snoozePending(
+        context: Context,
+        reminderId: Long,
+        minutes: Long,
+        codeOffset: Int
+    ): PendingIntent {
+        val intent = Intent(context, ReminderReceiver::class.java).apply {
+            action = ReminderScheduler.ACTION_SNOOZE
+            putExtra(ReminderScheduler.EXTRA_REMINDER_ID, reminderId)
+            putExtra(ReminderScheduler.EXTRA_SNOOZE_MINUTES, minutes)
+        }
+        return PendingIntent.getBroadcast(
+            context,
+            ReminderScheduler.requestCode(reminderId) + codeOffset,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     fun cancelNotification(context: Context, reminderId: Long) {

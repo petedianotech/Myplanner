@@ -10,6 +10,7 @@ import com.myplanner.app.data.repository.ReminderRepository
 import com.myplanner.app.data.repository.TaskRepository
 import com.myplanner.app.data.repository.VoiceNoteRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -20,6 +21,8 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 enum class PlanKind { TASK, REMINDER }
+
+enum class HomeFilter { ALL, TODAY, OVERDUE, UPCOMING }
 
 data class PlanItem(
     val id: Long,
@@ -38,8 +41,11 @@ data class HomeUiState(
     val todayTasksRemaining: Int = 0,
     val todayRemindersScheduled: Int = 0,
     val overdueCount: Int = 0,
+    val completedTodayCount: Int = 0,
     val todayItems: List<PlanItem> = emptyList(),
-    val upcomingItems: List<PlanItem> = emptyList()
+    val upcomingItems: List<PlanItem> = emptyList(),
+    val filter: HomeFilter = HomeFilter.ALL,
+    val filteredItems: List<PlanItem> = emptyList()
 )
 
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
@@ -51,10 +57,17 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val ideaRepository = IdeaRepository(db.ideaDao())
     val voiceNoteRepository = VoiceNoteRepository.create(application, db.voiceNoteDao())
 
+    private val filterFlow = MutableStateFlow(HomeFilter.ALL)
+
+    fun setFilter(filter: HomeFilter) {
+        filterFlow.value = filter
+    }
+
     val uiState: StateFlow<HomeUiState> = combine(
         taskRepository.observeTasks(),
-        reminderRepository.observeReminders()
-    ) { tasks, reminders ->
+        reminderRepository.observeReminders(),
+        filterFlow
+    ) { tasks, reminders, filter ->
         val zone = ZoneId.systemDefault()
         val today = LocalDate.now(zone)
         val startOfToday = today.atStartOfDay(zone).toInstant().toEpochMilli()
@@ -91,16 +104,32 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 !item.completed && at >= startOfTomorrow
             }
             .sortedBy { it.atMillis }
-            .take(5)
+            .take(8)
             .toList()
+
+        val filtered = when (filter) {
+            HomeFilter.ALL -> todayItems + upcoming.filter { up ->
+                todayItems.none { it.id == up.id && it.kind == up.kind }
+            }
+            HomeFilter.TODAY -> todayItems.filter {
+                val at = it.atMillis
+                at == null || at in startOfToday until startOfTomorrow || it.isOverdue(now)
+            }
+            HomeFilter.OVERDUE -> all.filter { it.isOverdue(now) }
+                .sortedBy { it.atMillis }
+            HomeFilter.UPCOMING -> upcoming
+        }
 
         HomeUiState(
             isLoading = false,
             todayTasksRemaining = todayItems.count { it.kind == PlanKind.TASK && !it.completed },
             todayRemindersScheduled = todayItems.count { it.kind == PlanKind.REMINDER && !it.completed },
             overdueCount = all.count { it.isOverdue(now) },
+            completedTodayCount = todayItems.count { it.completed },
             todayItems = todayItems,
-            upcomingItems = upcoming
+            upcomingItems = upcoming,
+            filter = filter,
+            filteredItems = filtered
         )
     }
         .flowOn(Dispatchers.Default)
@@ -116,6 +145,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 PlanKind.TASK -> taskRepository.setCompleted(item.id, !item.completed)
                 PlanKind.REMINDER -> reminderRepository.setCompleted(item.id, !item.completed)
             }
+        }
+    }
+
+    fun snoozeReminder(item: PlanItem, minutes: Long) {
+        if (item.kind != PlanKind.REMINDER) return
+        viewModelScope.launch {
+            reminderRepository.snoozeMinutes(item.id, minutes.coerceAtLeast(1L))
         }
     }
 }
