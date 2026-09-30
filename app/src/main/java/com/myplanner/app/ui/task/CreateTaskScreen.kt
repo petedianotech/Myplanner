@@ -16,6 +16,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.myplanner.app.ui.capture.CaptureFormScreen
 import com.myplanner.app.ui.components.AppFilterChip
+import com.myplanner.app.ui.components.DateTimePickerField
 import com.myplanner.app.ui.theme.Spacing
 import java.time.LocalDate
 import java.time.ZoneId
@@ -46,18 +47,21 @@ fun CreateTaskScreen(
                 }
             }
             Spacer(Modifier.height(Spacing.lg))
-            Text("Due (optional)", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            DateTimePickerField(
+                label = "Due (optional)",
+                millis = dueAt,
+                onMillisChange = { dueAt = it },
+                allowClear = true,
+                zone = zone
+            )
             Spacer(Modifier.height(Spacing.sm))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                AppFilterChip(label = "Today", selected = false, onClick = {
+                AppFilterChip(label = "Today 18:00", selected = false, onClick = {
                     dueAt = LocalDate.now(zone).atTime(18, 0).atZone(zone).toInstant().toEpochMilli()
                 })
-                AppFilterChip(label = "Tomorrow", selected = false, onClick = {
+                AppFilterChip(label = "Tomorrow 9:00", selected = false, onClick = {
                     dueAt = LocalDate.now(zone).plusDays(1).atTime(9, 0).atZone(zone).toInstant().toEpochMilli()
                 })
-                if (dueAt != null) {
-                    AppFilterChip(label = "Clear due", selected = false, onClick = { dueAt = null })
-                }
             }
         },
         onSave = { title, notes -> onSave(title, notes, dueAt, priority) },
