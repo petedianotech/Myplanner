@@ -33,6 +33,7 @@ import com.myplanner.app.ui.components.AppFilterChip
 import com.myplanner.app.ui.components.AppPrimaryButton
 import com.myplanner.app.ui.components.AppTextButton
 import com.myplanner.app.ui.components.AppTextField
+import com.myplanner.app.ui.components.DateTimePickerField
 import com.myplanner.app.ui.components.LoadingState
 import com.myplanner.app.ui.components.PageHeader
 import com.myplanner.app.ui.home.HomeViewModel
@@ -118,7 +119,13 @@ fun ReminderEditorScreen(
                 maxLines = 4
             )
             Spacer(Modifier.height(Spacing.lg))
-            Text("When", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            DateTimePickerField(
+                label = "When",
+                millis = triggerAt,
+                onMillisChange = { triggerAt = it },
+                allowClear = false,
+                zone = zone
+            )
             Spacer(Modifier.height(Spacing.sm))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 AppFilterChip(label = "In 1 hour", selected = false, onClick = {
@@ -127,14 +134,6 @@ fun ReminderEditorScreen(
                 AppFilterChip(label = "Tomorrow 9:00", selected = false, onClick = {
                     triggerAt = LocalDate.now(zone).plusDays(1).atTime(9, 0).atZone(zone).toInstant().toEpochMilli()
                 })
-            }
-            if (triggerAt != null) {
-                Spacer(Modifier.height(Spacing.sm))
-                Text(
-                    text = "Scheduled · ${formatPlanTime(triggerAt)}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
             Spacer(Modifier.height(Spacing.lg))
             Text("Repeat", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
