@@ -55,6 +55,8 @@ import com.myplanner.app.ui.reminder.CreateFirstReminderScreen
 import com.myplanner.app.ui.reminder.CreateReminderScreen
 import com.myplanner.app.ui.reminder.ReminderEditorScreen
 import com.myplanner.app.ui.search.SearchScreen
+import com.myplanner.app.ui.settings.PrivacyScreen
+import com.myplanner.app.ui.settings.SettingsScreen
 import com.myplanner.app.ui.setup.FirstReminderPromptScreen
 import com.myplanner.app.ui.setup.NotificationSetupScreen
 import com.myplanner.app.ui.task.CreateTaskScreen
@@ -85,6 +87,8 @@ object Routes {
     const val CALENDAR = "calendar"
     const val UPCOMING = "upcoming"
     const val SEARCH = "search"
+    const val SETTINGS = "settings"
+    const val PRIVACY = "privacy"
     const val VOICE_DETAIL = "voice_detail/{noteId}"
     const val EDIT_TASK = "edit_task/{taskId}"
     const val EDIT_REMINDER = "edit_reminder/{reminderId}"
@@ -234,6 +238,15 @@ fun MyPlannerNavGraph(
                 onBack = { navController.popBackStack() }
             )
         }
+        composable(Routes.SETTINGS) {
+            SettingsScreen(
+                onBack = { navController.popBackStack() },
+                onOpenPrivacy = { navController.navigate(Routes.PRIVACY) }
+            )
+        }
+        composable(Routes.PRIVACY) {
+            PrivacyScreen(onBack = { navController.popBackStack() })
+        }
         composable(Routes.SEARCH) {
             SearchScreen(
                 onOpenTask = { navController.navigate(Routes.editTask(it)) },
@@ -314,7 +327,8 @@ private fun MainTabs(rootNavController: NavHostController) {
                     },
                     onOpenCalendar = { rootNavController.navigate(Routes.CALENDAR) },
                     onOpenSearch = { rootNavController.navigate(Routes.SEARCH) },
-                    onOpenUpcoming = { rootNavController.navigate(Routes.UPCOMING) }
+                    onOpenUpcoming = { rootNavController.navigate(Routes.UPCOMING) },
+                    onOpenSettings = { rootNavController.navigate(Routes.SETTINGS) }
                 )
             }
             composable(Routes.PLANS) {
