@@ -1,1 +1,71 @@
-PLACEHOLDER2
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MyPlanner</string>
+
+    <string name="hello_title">Welcome to MyPlanner</string>
+    <string name="hello_subtitle">Your private, offline planner</string>
+    <string name="hello_get_started">Get started</string>
+    <string name="hello_explore">Explore first</string>
+
+    <string name="create_task_title">New task</string>
+    <string name="create_task_subtitle">Add something to get done</string>
+    <string name="create_task_field_label">Task</string>
+    <string name="create_task_field_placeholder">What needs to be done?</string>
+    <string name="create_task_notes_label">Notes (optional)</string>
+    <string name="create_task_notes_placeholder">Extra details…</string>
+    <string name="create_task_save">Save task</string>
+    <string name="create_task_saving">Saving…</string>
+    <string name="create_task_cancel">Cancel</string>
+
+    <string name="create_reminder_title">New reminder</string>
+    <string name="create_reminder_subtitle">Never miss an important moment</string>
+    <string name="create_reminder_field_label">Reminder</string>
+    <string name="create_reminder_field_placeholder">What should we remind you about?</string>
+    <string name="create_reminder_notes_label">Notes (optional)</string>
+    <string name="create_reminder_notes_placeholder">Extra details…</string>
+    <string name="create_reminder_save">Save reminder</string>
+    <string name="create_reminder_saving">Saving…</string>
+    <string name="create_reminder_cancel">Cancel</string>
+
+    <string name="home_title">Today</string>
+    <string name="home_subtitle">Your plans for the day</string>
+    <string name="home_empty_title">Nothing scheduled yet</string>
+    <string name="home_empty_message">Tasks and reminders you create will show up here. Everything stays on your device.</string>
+
+    <string name="design_system_title">Design System</string>
+    <string name="design_system_subtitle">Phase 2 component gallery</string>
+    <string name="section_typography">Typography</string>
+    <string name="section_colors">Color roles</string>
+    <string name="section_buttons">Buttons</string>
+    <string name="section_cards">Cards</string>
+    <string name="section_fields">Text fields</string>
+    <string name="section_chips">Chips</string>
+    <string name="section_list">List items</string>
+    <string name="section_states">States</string>
+    <string name="section_icons">Icons</string>
+    <string name="section_components">Components</string>
+    <string name="section_surfaces">Surfaces</string>
+    <string name="foundation_title">Foundation</string>
+    <string name="foundation_subtitle">Visual language and components</string>
+    <string name="primary_button">Save plan</string>
+    <string name="secondary_button">Cancel</string>
+    <string name="tonal_button">Add note</string>
+    <string name="text_button">Learn more</string>
+    <string name="empty_title">No tasks for today</string>
+    <string name="empty_message">Add a task or reminder to get started with your day.</string>
+    <string name="loading_message">Loading your plans…</string>
+    <string name="error_title">Something went wrong</string>
+    <string name="error_message">We couldn\'t load this content. Check your device and try again.</string>
+    <string name="retry">Try again</string>
+    <string name="field_label_task">Task title</string>
+    <string name="field_placeholder_task">What needs to be done?</string>
+    <string name="field_supporting">Keep titles short and clear</string>
+    <string name="list_sample_title">Review quarterly goals</string>
+    <string name="list_sample_support">Due today · High priority</string>
+    <string name="list_sample_time">9:30 AM</string>
+    <string name="chip_today">Today</string>
+    <string name="chip_upcoming">Upcoming</string>
+    <string name="chip_notes">Notes</string>
+    <string name="hero_summary">3 tasks left today</string>
+    <string name="hero_detail">Stay focused — you\'re on track.</string>
+</resources>
