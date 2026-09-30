@@ -19,6 +19,7 @@ class PreferencesRepository(private val context: Context) {
 
     private object Keys {
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val THEME_PALETTE = stringPreferencesKey("theme_palette")
         val ONBOARDING_COMPLETE = booleanPreferencesKey("onboarding_complete")
         val NOTIFICATIONS_PROMPTED = booleanPreferencesKey("notifications_prompted")
         val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
@@ -32,6 +33,9 @@ class PreferencesRepository(private val context: Context) {
 
     val themeMode: Flow<String> = context.dataStore.data.map { prefs ->
         prefs[Keys.THEME_MODE] ?: "system"
+    }
+    val themePalette: Flow<String> = context.dataStore.data.map { prefs ->
+        prefs[Keys.THEME_PALETTE] ?: "indigo"
     }
     val onboardingComplete: Flow<Boolean> = context.dataStore.data.map { prefs ->
         prefs[Keys.ONBOARDING_COMPLETE] ?: false
@@ -63,6 +67,9 @@ class PreferencesRepository(private val context: Context) {
 
     suspend fun setThemeMode(mode: String) {
         context.dataStore.edit { prefs -> prefs[Keys.THEME_MODE] = mode }
+    }
+    suspend fun setThemePalette(palette: String) {
+        context.dataStore.edit { prefs -> prefs[Keys.THEME_PALETTE] = palette }
     }
     suspend fun setOnboardingComplete(complete: Boolean) {
         context.dataStore.edit { prefs -> prefs[Keys.ONBOARDING_COMPLETE] = complete }
@@ -96,6 +103,7 @@ class PreferencesRepository(private val context: Context) {
         val prefs = context.dataStore.data.first()
         return buildMap {
             put("theme_mode", prefs[Keys.THEME_MODE] ?: "system")
+            put("theme_palette", prefs[Keys.THEME_PALETTE] ?: "indigo")
             put("reminder_notifications", (prefs[Keys.REMINDER_NOTIFICATIONS] ?: true).toString())
             put("vibrate_on_reminder", (prefs[Keys.VIBRATE_ON_REMINDER] ?: true).toString())
             put("notify_missed_reminders", (prefs[Keys.NOTIFY_MISSED] ?: true).toString())
@@ -105,6 +113,7 @@ class PreferencesRepository(private val context: Context) {
     suspend fun applySnapshot(map: Map<String, String>) {
         context.dataStore.edit { prefs ->
             map["theme_mode"]?.let { prefs[Keys.THEME_MODE] = it }
+            map["theme_palette"]?.let { prefs[Keys.THEME_PALETTE] = it }
             map["reminder_notifications"]?.let { prefs[Keys.REMINDER_NOTIFICATIONS] = it.toBoolean() }
             map["vibrate_on_reminder"]?.let { prefs[Keys.VIBRATE_ON_REMINDER] = it.toBoolean() }
             map["notify_missed_reminders"]?.let { prefs[Keys.NOTIFY_MISSED] = it.toBoolean() }
