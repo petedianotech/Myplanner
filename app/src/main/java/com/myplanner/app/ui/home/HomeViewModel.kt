@@ -9,6 +9,7 @@ import com.myplanner.app.data.repository.NoteRepository
 import com.myplanner.app.data.repository.ReminderRepository
 import com.myplanner.app.data.repository.TaskRepository
 import com.myplanner.app.data.repository.VoiceNoteRepository
+import com.myplanner.app.widget.TodayWidgetProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -145,6 +146,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 PlanKind.TASK -> taskRepository.setCompleted(item.id, !item.completed)
                 PlanKind.REMINDER -> reminderRepository.setCompleted(item.id, !item.completed)
             }
+            TodayWidgetProvider.requestUpdate(getApplication())
         }
     }
 
@@ -152,6 +154,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         if (item.kind != PlanKind.REMINDER) return
         viewModelScope.launch {
             reminderRepository.snoozeMinutes(item.id, minutes.coerceAtLeast(1L))
+            TodayWidgetProvider.requestUpdate(getApplication())
         }
     }
 }
