@@ -96,4 +96,6 @@
     <string name="chip_notes">Notes</string>
     <string name="hero_summary">3 tasks left today</string>
     <string name="hero_detail">Stay focused — you\'re on track.</string>
+
+    <string name="widget_today_description">Today\'s tasks and next reminder</string>
 </resources>
