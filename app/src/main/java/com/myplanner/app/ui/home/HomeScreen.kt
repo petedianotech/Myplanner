@@ -7,6 +7,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +25,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
@@ -82,6 +82,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     onQuickCapture: () -> Unit,
@@ -108,7 +109,9 @@ fun HomeScreen(
             LoadingState(modifier = Modifier.padding(innerPadding), message = "Loading your day…")
         } else {
             LazyColumn(
-                modifier = Modifier.fillMaxSize().padding(innerPadding),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
                 contentPadding = PaddingValues(
                     start = Spacing.screenHorizontal,
                     end = Spacing.screenHorizontal,
@@ -120,30 +123,42 @@ fun HomeScreen(
                 item(key = "header") {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.Top
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(Modifier = Modifier.weight(1f)) {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                greetingForHour(),
+                                text = greetingForHour(),
                                 style = MaterialTheme.typography.headlineSmall,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
-                            Spacer(Modifier.height(2.dp))
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                dateLabel,
+                                text = dateLabel,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        AppIconButton(icon = Icons.Outlined.Search, contentDescription = "Search", onClick = onOpenSearch)
-                        AppIconButton(icon = Icons.Outlined.CalendarMonth, contentDescription = "Calendar", onClick = onOpenCalendar)
-                        AppIconButton(icon = Icons.Outlined.Settings, contentDescription = "Settings", onClick = onOpenSettings)
+                        AppIconButton(
+                            icon = Icons.Outlined.Search,
+                            contentDescription = "Search",
+                            onClick = onOpenSearch
+                        )
+                        AppIconButton(
+                            icon = Icons.Outlined.CalendarMonth,
+                            contentDescription = "Calendar",
+                            onClick = onOpenCalendar
+                        )
+                        AppIconButton(
+                            icon = Icons.Outlined.Settings,
+                            contentDescription = "Settings",
+                            onClick = onOpenSettings
+                        )
                     }
                 }
 
                 item(key = "hero") {
-                    Spacer(Modifier.height(Spacing.sm))
+                    Spacer(modifier = Modifier.height(Spacing.sm))
                     TodayHeroCard(state)
                 }
 
@@ -157,11 +172,16 @@ fun HomeScreen(
                             contentPadding = PaddingValues(vertical = Spacing.md),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            items(HomeFilter.entries) { f ->
+                            items(
+                                items = HomeFilter.entries.toList(),
+                                key = { it.name }
+                            ) { f ->
                                 val label = when (f) {
                                     HomeFilter.ALL -> "All"
                                     HomeFilter.TODAY -> "Today"
-                                    HomeFilter.OVERDUE -> if (state.overdueCount > 0) "Overdue · ${state.overdueCount}" else "Overdue"
+                                    HomeFilter.OVERDUE ->
+                                        if (state.overdueCount > 0) "Overdue · ${state.overdueCount}"
+                                        else "Overdue"
                                     HomeFilter.UPCOMING -> "Upcoming"
                                 }
                                 AppFilterChip(
@@ -202,22 +222,24 @@ fun HomeScreen(
                     items(
                         items = state.filteredItems,
                         key = { "${it.kind}-${it.id}" }
-                    ) { item ->
+                    ) { planItem ->
                         AnimatedVisibility(
                             visible = true,
-                            enter = fadeIn(AppMotion.mediumTween()) + expandVertically(AppMotion.mediumTween()),
-                            exit = fadeOut(AppMotion.shortTween()) + shrinkVertically(AppMotion.shortTween())
+                            enter = fadeIn(AppMotion.mediumTween()) +
+                                expandVertically(AppMotion.mediumTween()),
+                            exit = fadeOut(AppMotion.shortTween()) +
+                                shrinkVertically(AppMotion.shortTween())
                         ) {
                             PlanItemCard(
-                                item = item,
+                                item = planItem,
                                 onToggle = {
                                     haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    viewModel.toggleItem(item)
+                                    viewModel.toggleItem(planItem)
                                 },
-                                onOpen = { onOpenItem(item) },
+                                onOpen = { onOpenItem(planItem) },
                                 onSnooze = { minutes ->
                                     haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                    viewModel.snoozeReminder(item, minutes)
+                                    viewModel.snoozeReminder(planItem, minutes)
                                 }
                             )
                         }
@@ -270,7 +292,7 @@ private fun TodayHeroCard(state: HomeUiState) {
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White
             )
-            Spacer(Modifier.height(Spacing.xs))
+            Spacer(modifier = Modifier.height(Spacing.xs))
             Text(
                 text = when {
                     state.overdueCount > 0 -> "Start with what's overdue — the rest can wait."
@@ -295,7 +317,7 @@ private fun TodayHeroCard(state: HomeUiState) {
                 color = Color.White.copy(alpha = 0.9f)
             )
             if (state.completedTodayCount > 0 || state.overdueCount > 0) {
-                Spacer(Modifier.height(Spacing.md))
+                Spacer(modifier = Modifier.height(Spacing.md))
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                     if (state.completedTodayCount > 0) {
                         StatPill("${state.completedTodayCount} done")
@@ -391,7 +413,7 @@ fun PlanItemCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(Modifier.height(2.dp))
+                Spacer(modifier = Modifier.height(2.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = if (item.kind == PlanKind.TASK) Icons.Outlined.TaskAlt else Icons.Outlined.Alarm,
@@ -399,7 +421,7 @@ fun PlanItemCard(
                         modifier = Modifier.size(14.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
-                    Spacer(Modifier.width(4.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = buildString {
                             append(if (item.kind == PlanKind.TASK) "Task" else "Reminder")
@@ -407,7 +429,13 @@ fun PlanItemCard(
                             if (overdue) append(" · Overdue")
                             if (item.priority >= 2 && item.kind == PlanKind.TASK) {
                                 append(" · ")
-                                append(when (item.priority) { 2 -> "Medium"; 3 -> "High"; else -> "" })
+                                append(
+                                    when (item.priority) {
+                                        2 -> "Medium"
+                                        3 -> "High"
+                                        else -> ""
+                                    }
+                                )
                             }
                         },
                         style = MaterialTheme.typography.bodySmall,
@@ -428,20 +456,29 @@ fun PlanItemCard(
                     ) {
                         DropdownMenuItem(
                             text = { Text("10 minutes") },
-                            onClick = { snoozeMenu = false; onSnooze(10) }
+                            onClick = {
+                                snoozeMenu = false
+                                onSnooze(10)
+                            }
                         )
                         DropdownMenuItem(
                             text = { Text("30 minutes") },
-                            onClick = { snoozeMenu = false; onSnooze(30) }
+                            onClick = {
+                                snoozeMenu = false
+                                onSnooze(30)
+                            }
                         )
                         DropdownMenuItem(
                             text = { Text("1 hour") },
-                            onClick = { snoozeMenu = false; onSnooze(60) }
+                            onClick = {
+                                snoozeMenu = false
+                                onSnooze(60)
+                            }
                         )
                     }
                 }
             } else {
-                Spacer(Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(8.dp))
             }
         }
     }
