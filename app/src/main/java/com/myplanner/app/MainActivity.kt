@@ -16,6 +16,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.myplanner.app.data.local.PreferencesRepository
 import com.myplanner.app.notification.ReminderScheduler
 import com.myplanner.app.ui.navigation.MyPlannerApp
+import com.myplanner.app.ui.theme.AppPalette
 import com.myplanner.app.ui.theme.MyPlannerTheme
 
 class MainActivity : ComponentActivity() {
@@ -29,12 +30,14 @@ class MainActivity : ComponentActivity() {
         val prefs = PreferencesRepository(applicationContext)
         setContent {
             val themeMode by prefs.themeMode.collectAsStateWithLifecycle("system")
+            val themePalette by prefs.themePalette.collectAsStateWithLifecycle("indigo")
             val dark = when (themeMode) {
                 "light" -> false
                 "dark" -> true
                 else -> isSystemInDarkTheme()
             }
-            MyPlannerTheme(darkTheme = dark) {
+            val palette = AppPalette.fromId(themePalette)
+            MyPlannerTheme(darkTheme = dark, palette = palette) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     MyPlannerApp(openReminderId = openReminderId)
                 }
