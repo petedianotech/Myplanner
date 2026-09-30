@@ -34,6 +34,7 @@ import com.myplanner.app.ui.components.AppFilterChip
 import com.myplanner.app.ui.components.AppPrimaryButton
 import com.myplanner.app.ui.components.AppTextButton
 import com.myplanner.app.ui.components.AppTextField
+import com.myplanner.app.ui.components.DateTimePickerField
 import com.myplanner.app.ui.components.LoadingState
 import com.myplanner.app.ui.components.PageHeader
 import com.myplanner.app.ui.home.HomeViewModel
@@ -121,16 +122,21 @@ fun TaskEditorScreen(
                 }
             }
             Spacer(Modifier.height(Spacing.lg))
-            Text("Due", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            DateTimePickerField(
+                label = "Due",
+                millis = dueAt,
+                onMillisChange = { dueAt = it },
+                allowClear = true,
+                zone = zone
+            )
             Spacer(Modifier.height(Spacing.sm))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
-                AppFilterChip(label = "Today", selected = false, onClick = {
+                AppFilterChip(label = "Today 18:00", selected = false, onClick = {
                     dueAt = LocalDate.now(zone).atTime(18, 0).atZone(zone).toInstant().toEpochMilli()
                 })
-                AppFilterChip(label = "Tomorrow", selected = false, onClick = {
+                AppFilterChip(label = "Tomorrow 9:00", selected = false, onClick = {
                     dueAt = LocalDate.now(zone).plusDays(1).atTime(9, 0).atZone(zone).toInstant().toEpochMilli()
                 })
-                AppFilterChip(label = "Clear", selected = false, onClick = { dueAt = null })
             }
             Spacer(Modifier.height(Spacing.section))
             AppPrimaryButton(
