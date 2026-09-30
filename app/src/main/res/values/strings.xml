@@ -2,11 +2,36 @@
 <resources>
     <string name="app_name">MyPlanner</string>
 
+    <!-- Hello / onboarding -->
     <string name="hello_title">Welcome to MyPlanner</string>
     <string name="hello_subtitle">Your private, offline planner</string>
+    <string name="hello_tagline">Plan offline. Stay private.</string>
+    <string name="hello_description">Tasks, reminders, notes, ideas and voice notes — all on your device. No account, no cloud, no ads.</string>
     <string name="hello_get_started">Get started</string>
     <string name="hello_explore">Explore first</string>
+    <string name="hello_explore_first">Explore first</string>
+    <string name="hello_privacy">100% private · Offline by design</string>
 
+    <!-- Notification setup -->
+    <string name="notify_title">Stay on time</string>
+    <string name="notify_body">Allow notifications so reminders can alert you when they are due. You can change this later in Settings.</string>
+    <string name="notify_footnote">MyPlanner never tracks you or shares data.</string>
+    <string name="notify_allow">Allow notifications</string>
+    <string name="notify_not_now">Not now</string>
+
+    <!-- First reminder prompt -->
+    <string name="first_reminder_title">Create your first reminder?</string>
+    <string name="first_reminder_body">A simple reminder helps you see how the app works. You can skip and add one anytime.</string>
+    <string name="first_reminder_create">Create a reminder</string>
+    <string name="first_reminder_skip">Skip for now</string>
+
+    <!-- Create first reminder form -->
+    <string name="create_reminder_label">Reminder</string>
+    <string name="create_reminder_placeholder">What should we remind you about?</string>
+    <string name="create_reminder_error">Please enter a title</string>
+    <string name="create_reminder_hint">You can set the time later from the Plans tab.</string>
+
+    <!-- Create task -->
     <string name="create_task_title">New task</string>
     <string name="create_task_subtitle">Add something to get done</string>
     <string name="create_task_field_label">Task</string>
@@ -17,6 +42,7 @@
     <string name="create_task_saving">Saving…</string>
     <string name="create_task_cancel">Cancel</string>
 
+    <!-- Create reminder (general) -->
     <string name="create_reminder_title">New reminder</string>
     <string name="create_reminder_subtitle">Never miss an important moment</string>
     <string name="create_reminder_field_label">Reminder</string>
@@ -27,11 +53,13 @@
     <string name="create_reminder_saving">Saving…</string>
     <string name="create_reminder_cancel">Cancel</string>
 
+    <!-- Home -->
     <string name="home_title">Today</string>
     <string name="home_subtitle">Your plans for the day</string>
     <string name="home_empty_title">Nothing scheduled yet</string>
     <string name="home_empty_message">Tasks and reminders you create will show up here. Everything stays on your device.</string>
 
+    <!-- Design system / foundation -->
     <string name="design_system_title">Design System</string>
     <string name="design_system_subtitle">Phase 2 component gallery</string>
     <string name="section_typography">Typography</string>
