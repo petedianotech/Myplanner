@@ -19,6 +19,7 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -42,7 +43,10 @@ import com.myplanner.app.ui.components.LoadingState
 import com.myplanner.app.ui.components.SectionHeader
 import com.myplanner.app.ui.theme.Spacing
 import com.myplanner.app.ui.theme.Warning
+import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -53,6 +57,7 @@ fun HomeScreen(
     onOpenCalendar: () -> Unit = {},
     onOpenSearch: () -> Unit = {},
     onOpenUpcoming: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel()
 ) {
@@ -71,17 +76,31 @@ fun HomeScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
-                contentPadding = PaddingValues(start = Spacing.screenHorizontal, end = Spacing.screenHorizontal, top = Spacing.lg, bottom = Spacing.huge),
+                contentPadding = PaddingValues(
+                    start = Spacing.screenHorizontal,
+                    end = Spacing.screenHorizontal,
+                    top = Spacing.lg,
+                    bottom = Spacing.huge
+                ),
                 verticalArrangement = Arrangement.spacedBy(Spacing.md)
             ) {
                 item {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
-                        Column(Modifier.weight(1f)) {
-                            Text(greetingForHour(), style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.onBackground)
-                            Text(dateLabel, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Column(modifier.weight(1f)) {
+                            Text(
+                                greetingForHour(),
+                                style = MaterialTheme.typography.headlineSmall,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            Text(
+                                dateLabel,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                         AppIconButton(icon = Icons.Outlined.Search, contentDescription = "Search", onClick = onOpenSearch)
                         AppIconButton(icon = Icons.Outlined.CalendarMonth, contentDescription = "Calendar", onClick = onOpenCalendar)
+                        AppIconButton(icon = Icons.Outlined.Settings, contentDescription = "Settings", onClick = onOpenSettings)
                     }
                 }
                 item { TodaySummaryCard(state) }
@@ -91,13 +110,22 @@ fun HomeScreen(
                             EmptyState(
                                 title = "Nothing planned today",
                                 message = "Capture a task or reminder to give this day a shape.",
-                                action = { AppPrimaryButton(text = "Quick capture", onClick = onQuickCapture, leadingIcon = Icons.Outlined.Add) }
+                                action = {
+                                    AppPrimaryButton(
+                                        text = "Quick capture",
+                                        onClick = onQuickCapture,
+                                        leadingIcon = Icons.Outlined.Add
+                                    )
+                                }
                             )
                         }
                     }
                 } else {
                     item {
-                        SectionHeader(title = "Today", subtitle = if (state.overdueCount > 0) "${state.overdueCount} overdue" else null)
+                        SectionHeader(
+                            title = "Today",
+                            subtitle = if (state.overdueCount > 0) "${state.overdueCount} overdue" else null
+                        )
                     }
                     items(state.todayItems, key = { "${it.kind}-${it.id}" }) { item ->
                         PlanRow(item, onToggle = { viewModel.toggleItem(item) }, onOpen = { onOpenItem(item) })
@@ -105,7 +133,10 @@ fun HomeScreen(
                     }
                     if (state.upcomingItems.isNotEmpty()) {
                         item {
-                            SectionHeader(title = "Upcoming", action = { TextButton(onClick = onOpenUpcoming) { Text("See all") } })
+                            SectionHeader(
+                                title = "Upcoming",
+                                action = { TextButton(onClick = onOpenUpcoming) { Text("See all") } }
+                            )
                         }
                         items(state.upcomingItems, key = { "up-${it.kind}-${it.id}" }) { item ->
                             PlanRow(item, onToggle = { viewModel.toggleItem(item) }, onOpen = { onOpenItem(item) })
@@ -136,7 +167,8 @@ private fun TodaySummaryCard(state: HomeUiState) {
         Text(
             text = when {
                 state.overdueCount > 0 -> "A few things are overdue — tackle those first if you can."
-                state.todayTasksRemaining == 0 && state.todayRemindersScheduled == 0 -> "A quiet day. Capture something when it comes to mind."
+                state.todayTasksRemaining == 0 && state.todayRemindersScheduled == 0 ->
+                    "A quiet day. Capture something when it comes to mind."
                 else -> "Stay with the next item. The rest can wait."
             },
             style = MaterialTheme.typography.bodyMedium,
@@ -154,13 +186,19 @@ private fun PlanRow(item: PlanItem, onToggle: () -> Unit, onOpen: () -> Unit = {
         if (timeLabel != null) append(" · $timeLabel")
         if (overdue) append(" · Overdue")
     }
-    Row(Modifier.fillMaxWidth().clickable(onClick = onOpen), verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onOpen),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         AppIconButton(
             icon = if (item.completed) Icons.Outlined.CheckCircle else Icons.Outlined.RadioButtonUnchecked,
             contentDescription = if (item.completed) "Mark incomplete" else "Mark complete",
             onClick = onToggle
         )
-        Column(Modifier.weight(1f).padding(vertical = Spacing.sm).then(if (item.completed) Modifier.alpha(0.55f) else Modifier)) {
+        Column(
+            modifier = Modifier.weight(1f).padding(vertical = Spacing.sm)
+                .then(if (item.completed) Modifier.alpha(0.55f) else Modifier)
+        ) {
             Text(
                 text = item.title,
                 style = MaterialTheme.typography.bodyLarge,
@@ -174,5 +212,29 @@ private fun PlanRow(item: PlanItem, onToggle: () -> Unit, onOpen: () -> Unit = {
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
         )
+    }
+}
+
+fun greetingForHour(hour: Int = LocalTime.now().hour): String = when (hour) {
+    in 5..11 -> "Good morning"
+    in 12..16 -> "Good afternoon"
+    in 17..21 -> "Good evening"
+    else -> "Hello"
+}
+
+fun formatPlanTime(millis: Long?, zone: ZoneId = ZoneId.systemDefault()): String? {
+    if (millis == null) return null
+    val zdt = Instant.ofEpochMilli(millis).atZone(zone)
+    val today = LocalDate.now(zone)
+    val date = zdt.toLocalDate()
+    val time = "%02d:%02d".format(zdt.hour, zdt.minute)
+    return when (date) {
+        today -> time
+        today.plusDays(1) -> "Tomorrow · $time"
+        today.minusDays(1) -> "Yesterday · $time"
+        else -> {
+            val month = date.month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }
+            "${date.dayOfMonth} $month · $time"
+        }
     }
 }
