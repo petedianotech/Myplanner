@@ -54,6 +54,7 @@ import com.myplanner.app.ui.components.PageHeader
 import com.myplanner.app.ui.components.SectionHeader
 import com.myplanner.app.ui.theme.AppPalette
 import com.myplanner.app.ui.theme.Spacing
+import com.myplanner.app.ui.theme.colors
 import kotlinx.coroutines.launch
 
 @Composable
@@ -178,7 +179,7 @@ fun SettingsScreen(
                 SettingsRow(
                     icon = Icons.Outlined.Info,
                     title = "MyPlanner",
-                    subtitle = "Version 1.1.0 · Offline personal planner"
+                    subtitle = "Version 1.2.0 · Offline personal planner"
                 )
             }
             Spacer(Modifier.height(Spacing.xxxl))
@@ -208,7 +209,7 @@ private fun PaletteRow(palette: AppPalette, selected: Boolean, onSelect: () -> U
             }
         }
         Spacer(modifier = Modifier.padding(start = Spacing.md))
-        Column(Modifier.weight(1f)) {
+        Column(modifier = Modifier.weight(1f)) {
             Text(palette.label, style = MaterialTheme.typography.bodyLarge)
             Text(palette.description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -267,7 +268,7 @@ private fun SettingsRow(
     ) {
         Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         Spacer(modifier = Modifier.padding(start = Spacing.md))
-        Column(Modifier.weight(1f)) {
+        Column(modifier = Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.bodyLarge)
             Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
