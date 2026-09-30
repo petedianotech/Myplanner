@@ -34,7 +34,12 @@ interface TaskDao {
     @Update
     suspend fun update(task: TaskEntity)
 
-    @Query("UPDATE tasks SET completed = :completed, completedAtEpochMillis = :completedAt, updatedAtEpochMillis = :updatedAt WHERE id = :id")
+    @Query("""
+        UPDATE tasks SET completed = :completed,
+            completedAtEpochMillis = :completedAt,
+            updatedAtEpochMillis = :updatedAt
+        WHERE id = :id
+        """)
     suspend fun setCompleted(id: Long, completed: Boolean, completedAt: Long?, updatedAt: Long)
 
     @Query("DELETE FROM tasks WHERE id = :id")
@@ -45,15 +50,22 @@ interface TaskDao {
         WHERE dueAtEpochMillis IS NOT NULL
           AND dueAtEpochMillis >= :startInclusive
           AND dueAtEpochMillis < :endExclusive
-        ORDER BY dueAtEpochMillis ASC
+        ORDER BY dueAtEpochMillis ASC, priority DESC
         """)
     fun observeDueBetween(startInclusive: Long, endExclusive: Long): Flow<List<TaskEntity>>
 
     @Query("""
         SELECT * FROM tasks
-        WHERE title LIKE '%' || :query || '%' OR notes LIKE '%' || :query || '%'
+        WHERE title LIKE '%' || :query || '%'
+           OR notes LIKE '%' || :query || '%'
         ORDER BY completed ASC, updatedAtEpochMillis DESC
         LIMIT 50
         """)
     fun search(query: String): Flow<List<TaskEntity>>
+
+    @Query("DELETE FROM tasks")
+    suspend fun deleteAll()
+
+    @Query("SELECT COUNT(*) FROM tasks")
+    suspend fun count(): Int
 }
