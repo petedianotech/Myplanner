@@ -14,19 +14,19 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-private val LightColorScheme = lightColorScheme(
-    primary = IndigoPrimary,
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFFE0E7FF),
-    onPrimaryContainer = IndigoDark,
-    secondary = TealAccent,
+private fun lightScheme(p: PaletteColors) = lightColorScheme(
+    primary = p.primary,
+    onPrimary = p.onPrimaryLight,
+    primaryContainer = p.primaryContainerLight,
+    onPrimaryContainer = p.primaryDark,
+    secondary = p.secondary,
     onSecondary = Color.White,
-    secondaryContainer = Color(0xFFCCFBF1),
-    onSecondaryContainer = TealDeep,
-    tertiary = IndigoMuted,
+    secondaryContainer = p.secondaryContainerLight,
+    onSecondaryContainer = p.secondaryDeep,
+    tertiary = p.primary,
     onTertiary = Color.White,
-    tertiaryContainer = Color(0xFFE0E7FF),
-    onTertiaryContainer = IndigoDark,
+    tertiaryContainer = p.primaryContainerLight,
+    onTertiaryContainer = p.primaryDark,
     error = ErrorLight,
     onError = OnErrorLight,
     errorContainer = Color(0xFFFFDAD6),
@@ -47,23 +47,23 @@ private val LightColorScheme = lightColorScheme(
     scrim = ScrimLight,
     inverseSurface = DarkSurface,
     inverseOnSurface = DarkOnSurface,
-    inversePrimary = Color(0xFFA5B4FC),
-    surfaceTint = IndigoPrimary
+    inversePrimary = p.lightPrimary,
+    surfaceTint = p.primary
 )
 
-private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFFA5B4FC),
-    onPrimary = IndigoDark,
-    primaryContainer = Color(0xFF3730A3),
-    onPrimaryContainer = Color(0xFFE0E7FF),
-    secondary = Color(0xFF5EEAD4),
-    onSecondary = TealDeep,
-    secondaryContainer = Color(0xFF0D9488),
-    onSecondaryContainer = Color(0xFFCCFBF1),
-    tertiary = Color(0xFFA5B4FC),
-    onTertiary = IndigoDark,
-    tertiaryContainer = Color(0xFF4338CA),
-    onTertiaryContainer = Color(0xFFE0E7FF),
+private fun darkScheme(p: PaletteColors) = darkColorScheme(
+    primary = p.lightPrimary,
+    onPrimary = p.primaryDark,
+    primaryContainer = p.primaryContainerDark,
+    onPrimaryContainer = p.primaryContainerLight,
+    secondary = p.lightSecondary,
+    onSecondary = p.secondaryDeep,
+    secondaryContainer = p.secondaryContainerDark,
+    onSecondaryContainer = p.secondaryContainerLight,
+    tertiary = p.lightPrimary,
+    onTertiary = p.primaryDark,
+    tertiaryContainer = p.primaryContainerDark,
+    onTertiaryContainer = p.primaryContainerLight,
     error = ErrorDark,
     onError = OnErrorDark,
     errorContainer = Color(0xFF93000A),
@@ -84,16 +84,18 @@ private val DarkColorScheme = darkColorScheme(
     scrim = ScrimDark,
     inverseSurface = LightSurface,
     inverseOnSurface = LightOnSurface,
-    inversePrimary = IndigoPrimary,
-    surfaceTint = Color(0xFFA5B4FC)
+    inversePrimary = p.primary,
+    surfaceTint = p.lightPrimary
 )
 
 @Composable
 fun MyPlannerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    palette: AppPalette = AppPalette.INDIGO,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val colors = palette.colors()
+    val colorScheme = if (darkTheme) darkScheme(colors) else lightScheme(colors)
 
     val view = LocalView.current
     if (!view.isInEditMode) {
