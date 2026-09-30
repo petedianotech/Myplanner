@@ -9,7 +9,8 @@ import androidx.room.PrimaryKey
     indices = [
         Index(value = ["triggerAtEpochMillis"]),
         Index(value = ["completed", "cancelled", "triggerAtEpochMillis"]),
-        Index(value = ["title"])
+        Index(value = ["title"]),
+        Index(value = ["linkedTaskId"])
     ]
 )
 data class ReminderEntity(
@@ -22,6 +23,8 @@ data class ReminderEntity(
     val cancelled: Boolean = false,
     val completedAtEpochMillis: Long? = null,
     val lastFiredAtEpochMillis: Long? = null,
+    /** Optional link to a task this reminder is about. */
+    val linkedTaskId: Long? = null,
     val createdAtEpochMillis: Long = System.currentTimeMillis(),
     val updatedAtEpochMillis: Long = System.currentTimeMillis()
 ) {

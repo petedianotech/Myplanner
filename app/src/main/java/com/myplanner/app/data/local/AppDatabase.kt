@@ -14,7 +14,7 @@ import androidx.room.RoomDatabase
         IdeaEntity::class,
         VoiceNoteEntity::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {

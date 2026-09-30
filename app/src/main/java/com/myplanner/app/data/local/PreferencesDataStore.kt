@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -29,6 +30,7 @@ class PreferencesRepository(private val context: Context) {
         val REMINDER_NOTIFICATIONS = booleanPreferencesKey("reminder_notifications")
         val VIBRATE_ON_REMINDER = booleanPreferencesKey("vibrate_on_reminder")
         val NOTIFY_MISSED = booleanPreferencesKey("notify_missed_reminders")
+        val SNOOZE_MINUTES = intPreferencesKey("snooze_minutes")
     }
 
     val themeMode: Flow<String> = context.dataStore.data.map { prefs ->
@@ -64,6 +66,10 @@ class PreferencesRepository(private val context: Context) {
     val ideaCategoryFilter: Flow<String> = context.dataStore.data.map { prefs ->
         prefs[Keys.IDEA_CATEGORY_FILTER] ?: "all"
     }
+    /** Default snooze duration in minutes (10, 30, or 60). */
+    val snoozeMinutes: Flow<Int> = context.dataStore.data.map { prefs ->
+        (prefs[Keys.SNOOZE_MINUTES] ?: 10).coerceIn(5, 120)
+    }
 
     suspend fun setThemeMode(mode: String) {
         context.dataStore.edit { prefs -> prefs[Keys.THEME_MODE] = mode }
@@ -98,6 +104,9 @@ class PreferencesRepository(private val context: Context) {
     suspend fun setIdeaCategoryFilter(filter: String) {
         context.dataStore.edit { prefs -> prefs[Keys.IDEA_CATEGORY_FILTER] = filter }
     }
+    suspend fun setSnoozeMinutes(minutes: Int) {
+        context.dataStore.edit { prefs -> prefs[Keys.SNOOZE_MINUTES] = minutes.coerceIn(5, 120) }
+    }
 
     suspend fun snapshot(): Map<String, String> {
         val prefs = context.dataStore.data.first()
@@ -107,6 +116,7 @@ class PreferencesRepository(private val context: Context) {
             put("reminder_notifications", (prefs[Keys.REMINDER_NOTIFICATIONS] ?: true).toString())
             put("vibrate_on_reminder", (prefs[Keys.VIBRATE_ON_REMINDER] ?: true).toString())
             put("notify_missed_reminders", (prefs[Keys.NOTIFY_MISSED] ?: true).toString())
+            put("snooze_minutes", (prefs[Keys.SNOOZE_MINUTES] ?: 10).toString())
         }
     }
 
@@ -117,6 +127,7 @@ class PreferencesRepository(private val context: Context) {
             map["reminder_notifications"]?.let { prefs[Keys.REMINDER_NOTIFICATIONS] = it.toBoolean() }
             map["vibrate_on_reminder"]?.let { prefs[Keys.VIBRATE_ON_REMINDER] = it.toBoolean() }
             map["notify_missed_reminders"]?.let { prefs[Keys.NOTIFY_MISSED] = it.toBoolean() }
+            map["snooze_minutes"]?.toIntOrNull()?.let { prefs[Keys.SNOOZE_MINUTES] = it }
         }
     }
 
