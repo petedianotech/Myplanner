@@ -129,7 +129,7 @@ class PeteBubbleService : Service() {
             gravity = Gravity.TOP or Gravity.END
             x = dp(12)
             y = dp(180)
-            softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADAPT_RESIZE
+            softInputMode = WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
         }
 
         val root = LinearLayout(this).apply {
