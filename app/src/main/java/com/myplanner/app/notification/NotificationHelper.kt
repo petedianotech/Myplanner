@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.myplanner.app.MainActivity
@@ -18,6 +19,7 @@ object NotificationHelper {
     private const val CHANNEL_NAME = "Reminders"
     private const val CHANNEL_DESC =
         "Local alerts for scheduled reminders. Delivered on this device only."
+    private const val TAG = "PeteNotify"
 
     private val channelsReady = AtomicBoolean(false)
 
@@ -32,6 +34,7 @@ object NotificationHelper {
         ).apply {
             description = CHANNEL_DESC
             enableVibration(true)
+            enableLights(true)
             setShowBadge(true)
         }
         manager.createNotificationChannel(channel)
@@ -91,6 +94,8 @@ object NotificationHelper {
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
             .apply {
@@ -103,10 +108,17 @@ object NotificationHelper {
             .addAction(0, "Snooze 1h", snooze60)
             .build()
 
+        val nm = NotificationManagerCompat.from(context)
+        if (!nm.areNotificationsEnabled()) {
+            Log.w(TAG, "Notifications disabled — grant POST_NOTIFICATIONS in system settings")
+        }
         try {
-            NotificationManagerCompat.from(context)
-                .notify(notificationId(reminderId), notification)
-        } catch (_: SecurityException) {
+            nm.notify(notificationId(reminderId), notification)
+            Log.i(TAG, "Posted reminder notification id=$reminderId title=$contentTitle")
+        } catch (se: SecurityException) {
+            Log.e(TAG, "POST_NOTIFICATIONS permission missing", se)
+        } catch (t: Throwable) {
+            Log.e(TAG, "Failed to post notification", t)
         }
     }
 
