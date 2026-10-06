@@ -5,7 +5,9 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-val localProps = java.util.Properties()
+import java.util.Properties
+
+val localProps = Properties()
 val localFile = rootProject.file("local.properties")
 if (localFile.exists()) {
     localFile.inputStream().use { localProps.load(it) }
@@ -35,7 +37,8 @@ android {
             useSupportLibrary = true
         }
 
-        buildConfigField("String", "GEMINI_API_KEY", "\"${secret("GEMINI_API_KEY")}\"")
+        val geminiKey = secret("GEMINI_API_KEY")
+        buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
         buildConfigField("String", "GEMINI_MODEL", "\"gemini-2.0-flash\"")
     }
 
