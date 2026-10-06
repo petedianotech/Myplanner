@@ -1,44 +1,34 @@
 # Pete
 
-Personal Android AI assistant — voice-first, offline data, Gemini-ready.
+Personal Android AI assistant — Gemini-powered chat, voice, and overlay bubble.
 
-**Version 2.0.1-pete** · Kotlin · Jetpack Compose · Material 3 · Room
+**Version 2.1.0-pete**
 
 ## Features
-- Ambient home with gradients, glass cards, pill CTAs
-- Conversation canvas + local command router
+- Ambient home (gradients, glass, pills)
+- In-app conversation: **type or speak**
+- Gemini live chat when `GEMINI_API_KEY` is set
+- Local command router (tasks, reminders, focus) offline
+- Floating **bubble** over other apps (type + mic)
 - Daily brief, focus timer, quick command
-- Tasks, reminders, notes, ideas, voice notes (local)
-- Splash + Pete adaptive icon
-- Gemini API key via `BuildConfig` (optional until Live is fully wired)
+- Splash + Pete icon
 
-## API key (Gemini)
-
-**Never commit your key.**
-
-### Local (Android Studio)
-1. Create `local.properties` in the **project root** (same folder as `settings.gradle.kts`).
-2. Add:
-   ```properties
-   GEMINI_API_KEY=your_google_ai_studio_key
-   ```
-3. Rebuild. Key is available as `BuildConfig.GEMINI_API_KEY` / `GeminiConfig.apiKey`.
-
-### GitHub Actions (APK CI)
-1. Repo → **Settings → Secrets and variables → Actions**
-2. New secret name: **`GEMINI_API_KEY`**
-3. Value: your Google AI Studio key  
-4. Push to `main` — workflow injects the secret into the build.
-
-Get a key: https://aistudio.google.com/apikey
-
-## Build
-```bash
-./gradlew :app:assembleDebug
-# APK → app/build/outputs/apk/debug/
+## API key
+### Local
+`local.properties` in project root:
+```
+GEMINI_API_KEY=your_key
 ```
 
-CI artifact name: **pete-debug-apk**
+### GitHub Actions
+Secret name: **GEMINI_API_KEY**
 
-## Privacy
-Planner data stays on device. Gemini is only used when you configure a key and enable live AI.
+## Overlay bubble
+Settings → Assistant → Floating bubble  
+Grant **Display over other apps**, then enable.
+
+## Build
+```
+./gradlew :app:assembleDebug
+```
+CI artifact: **pete-debug-apk**
