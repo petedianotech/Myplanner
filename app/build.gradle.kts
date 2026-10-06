@@ -5,7 +5,6 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-// Load secrets from root local.properties (gitignored) or environment / CI.
 val localProps = java.util.Properties()
 val localFile = rootProject.file("local.properties")
 if (localFile.exists()) {
@@ -27,8 +26,8 @@ android {
         applicationId = "com.myplanner.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 6
-        versionName = "2.0.1-pete"
+        versionCode = 7
+        versionName = "2.1.0-pete"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -36,10 +35,7 @@ android {
             useSupportLibrary = true
         }
 
-        // Gemini API key — never commit real values.
-        // Local:  local.properties → GEMINI_API_KEY=your_key
-        // CI:     GitHub Actions secret GEMINI_API_KEY
-        buildConfigField("String", "GEMINI_API_KEY", "\"${secret(\"GEMINI_API_KEY\")}\"")
+        buildConfigField("String", "GEMINI_API_KEY", "\"${secret("GEMINI_API_KEY")}\"")
         buildConfigField("String", "GEMINI_MODEL", "\"gemini-2.0-flash\"")
     }
 
