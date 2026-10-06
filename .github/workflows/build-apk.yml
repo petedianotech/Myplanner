@@ -56,20 +56,13 @@ jobs:
         with:
           gradle-version: "8.11.1"
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew || true
-
       - name: Build debug APK
-        id: build
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           set -o pipefail
-          if [ -f ./gradlew ]; then
-            ./gradlew :app:assembleDebug --stacktrace --no-daemon 2>&1 | tee build.log
-          else
-            gradle :app:assembleDebug --stacktrace --no-daemon 2>&1 | tee build.log
-          fi
+          # Use provisioned Gradle (wrapper jar is broken/missing GradleWrapperMain in this repo)
+          gradle :app:assembleDebug --stacktrace --no-daemon 2>&1 | tee build.log
 
       - name: Upload build log (always)
         if: always()
