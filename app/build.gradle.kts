@@ -5,6 +5,20 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+// Load secrets from root local.properties (gitignored) or environment / CI.
+val localProps = java.util.Properties()
+val localFile = rootProject.file("local.properties")
+if (localFile.exists()) {
+    localFile.inputStream().use { localProps.load(it) }
+}
+fun secret(name: String): String {
+    val raw = localProps.getProperty(name)
+        ?: project.findProperty(name)?.toString()
+        ?: System.getenv(name)
+        ?: ""
+    return raw.replace("\\", "\\\\").replace("\"", "\\\"")
+}
+
 android {
     namespace = "com.myplanner.app"
     compileSdk = 35
@@ -13,14 +27,20 @@ android {
         applicationId = "com.myplanner.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 4
-        versionName = "1.3.0"
+        versionCode = 6
+        versionName = "2.0.1-pete"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // Gemini API key — never commit real values.
+        // Local:  local.properties → GEMINI_API_KEY=your_key
+        // CI:     GitHub Actions secret GEMINI_API_KEY
+        buildConfigField("String", "GEMINI_API_KEY", "\"${secret(\"GEMINI_API_KEY\")}\"")
+        buildConfigField("String", "GEMINI_MODEL", "\"gemini-2.0-flash\"")
     }
 
     buildTypes {
@@ -67,6 +87,7 @@ ksp {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
