@@ -37,24 +37,19 @@ jobs:
           printf '%s\n' "24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$SDK/licenses/android-sdk-license"
           printf '%s\n' "84831b9409646a918e30573bab4c9c91346d8abd" > "$SDK/licenses/android-sdk-preview-license"
           printf '%s\n' "d56f5187474652653bbdf39b9ac8ce7f" > "$SDK/licenses/android-googletv-license"
-          printf '%s\n' "601085b94cd77f0b54ff86406957099ebe79c4d6" > "$SDK/licenses/android-sdk-arm-dbt-license"
-          printf '%s\n' "33b6a2b64607f11b759f320ef9dff4ae5c47d97a" > "$SDK/licenses/google-gdk-license"
           SM=$(command -v sdkmanager || true)
           if [ -z "$SM" ]; then
             for c in "$SDK/cmdline-tools/latest/bin/sdkmanager" \
-                     "$SDK/cmdline-tools/16.0/bin/sdkmanager" \
-                     "$SDK/cmdline-tools/12.0/bin/sdkmanager"; do
+                     "$SDK/cmdline-tools/16.0/bin/sdkmanager"; do
               [ -x "$c" ] && SM="$c" && break
             done
           fi
           if [ -n "$SM" ]; then
             yes | "$SM" --licenses >/dev/null 2>&1 || true
             "$SM" "platforms;android-35" "build-tools;35.0.0" || true
-            "$SM" "platforms;android-34" "build-tools;34.0.0" || true
           fi
           set -e
           echo "ANDROID_HOME=$SDK"
-          echo "sdkmanager=$SM"
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
@@ -65,16 +60,28 @@ jobs:
         run: chmod +x gradlew || true
 
       - name: Build debug APK
+        id: build
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
+          set -o pipefail
           if [ -f ./gradlew ]; then
-            ./gradlew :app:assembleDebug --stacktrace --no-daemon
+            ./gradlew :app:assembleDebug --stacktrace --no-daemon 2>&1 | tee build.log
           else
-            gradle :app:assembleDebug --stacktrace --no-daemon
+            gradle :app:assembleDebug --stacktrace --no-daemon 2>&1 | tee build.log
           fi
 
+      - name: Upload build log (always)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
+          if-no-files-found: ignore
+          retention-days: 7
+
       - name: Upload debug APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: pete-debug-apk
