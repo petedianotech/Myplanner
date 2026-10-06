@@ -1,0 +1,6 @@
+# Copy to local.properties (gitignored) and fill in.
+# sdk.dir is usually auto-written by Android Studio.
+# sdk.dir=/Users/YOU/Library/Android/sdk
+
+# Google AI Studio / Gemini API key for Pete live AI
+GEMINI_API_KEY=YOUR_KEY_HERE
