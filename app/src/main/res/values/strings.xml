@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">MyPlanner</string>
+    <string name="app_name">petediano</string>
 
     <!-- Hello / onboarding -->
-    <string name="hello_title">Welcome to MyPlanner</string>
-    <string name="hello_subtitle">Your private, offline planner</string>
-    <string name="hello_tagline">Plan offline. Stay private.</string>
-    <string name="hello_description">Tasks, reminders, notes, ideas and voice notes — all on your device. No account, no cloud, no ads.</string>
+    <string name="hello_title">Welcome to petediano</string>
+    <string name="hello_subtitle">Your private AI assistant & planner</string>
+    <string name="hello_tagline">Hey Pete. Plan offline. Stay private.</string>
+    <string name="hello_description">Talk to Pete, manage tasks, reminders, notes and ideas — on your device. No account, no ads.</string>
     <string name="hello_get_started">Get started</string>
     <string name="hello_explore">Explore first</string>
     <string name="hello_explore_first">Explore first</string>
-    <string name="hello_privacy">100% private · Offline by design</string>
+    <string name="hello_privacy">100% private · Offline-first</string>
 
     <!-- Notification setup -->
     <string name="notify_title">Stay on time</string>
     <string name="notify_body">Allow notifications so reminders can alert you when they are due. You can change this later in Settings.</string>
-    <string name="notify_footnote">MyPlanner never tracks you or shares data.</string>
+    <string name="notify_footnote">petediano never tracks you or shares data.</string>
     <string name="notify_allow">Allow notifications</string>
     <string name="notify_not_now">Not now</string>
 
