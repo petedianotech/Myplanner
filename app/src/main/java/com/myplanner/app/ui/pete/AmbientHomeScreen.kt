@@ -112,7 +112,7 @@ fun AmbientHomeScreen(
             PetePillButton(text = "Hey Pete", onClick = onHeyPete, modifier = Modifier.fillMaxWidth())
             Spacer(Modifier.height(12.dp))
             if (onOpenBrief != null) {
-                PeteGlassPill(text = "Daily brief", onClick = onOpenBrief)
+                PeteGlassPill(text = "Live call", onClick = onOpenBrief)
             }
             Spacer(Modifier.height(20.dp))
         }
