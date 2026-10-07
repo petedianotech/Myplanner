@@ -3,11 +3,11 @@ package com.myplanner.app.ui.pete
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.Text
@@ -40,6 +40,9 @@ fun AmbientHomeScreen(
     onOpenItem: (PlanItem) -> Unit = {},
     onOpenBrief: (() -> Unit)? = null,
     onOpenLegacyHome: (() -> Unit)? = null,
+    onOpenSettings: (() -> Unit)? = null,
+    onOpenSearch: (() -> Unit)? = null,
+    onOpenPlans: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel()
 ) {
@@ -67,44 +70,51 @@ fun AmbientHomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .navigationBarsPadding()
                 .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(48.dp))
+            Spacer(Modifier.height(36.dp))
+            Text("petediano", color = PeteColors.Cyan, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(8.dp))
             Text(dateLine, color = PeteColors.OnDarkMuted, fontSize = 15.sp)
             Spacer(Modifier.height(8.dp))
             Text(
                 clock,
                 color = PeteColors.OnDark,
-                fontSize = 72.sp,
+                fontSize = 68.sp,
                 fontWeight = FontWeight.Light,
                 textAlign = TextAlign.Center
             )
-            Spacer(Modifier.height(8.dp))
-            Text("Hey boss", color = PeteColors.Cyan, fontSize = 18.sp, fontWeight = FontWeight.Medium)
-            Spacer(Modifier.height(36.dp))
+            Spacer(Modifier.height(6.dp))
+            Text("Hey boss", color = PeteColors.OnDarkSoft, fontSize = 18.sp, fontWeight = FontWeight.Medium)
+            Spacer(Modifier.height(28.dp))
             PeteGlassCard(modifier = Modifier.fillMaxWidth()) {
                 Text("Up next", color = PeteColors.OnDarkMuted, fontSize = 12.sp)
                 Spacer(Modifier.height(6.dp))
                 Text(nextTitle, color = PeteColors.OnDark, fontSize = 17.sp, fontWeight = FontWeight.SemiBold)
             }
-            Spacer(Modifier.weight(1f))
-            PetePillButton(text = "Hey Pete", onClick = onHeyPete, modifier = Modifier.fillMaxWidth())
-            Spacer(Modifier.height(14.dp))
-            Column(
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
+            Spacer(Modifier.height(16.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally)
             ) {
-                if (onOpenBrief != null) {
-                    PeteGlassPill(text = "Daily brief", onClick = onOpenBrief)
+                if (onOpenPlans != null) {
+                    PeteGlassPill(text = "Plans", onClick = onOpenPlans)
                 }
-                if (onOpenLegacyHome != null) {
-                    PeteGlassPill(text = "Classic planner", onClick = onOpenLegacyHome)
+                if (onOpenSearch != null) {
+                    PeteGlassPill(text = "Search", onClick = onOpenSearch)
+                }
+                if (onOpenSettings != null) {
+                    PeteGlassPill(text = "Settings", onClick = onOpenSettings)
                 }
             }
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.weight(1f))
+            PetePillButton(text = "Hey Pete", onClick = onHeyPete, modifier = Modifier.fillMaxWidth())
+            Spacer(Modifier.height(12.dp))
+            if (onOpenBrief != null) {
+                PeteGlassPill(text = "Daily brief", onClick = onOpenBrief)
+            }
+            Spacer(Modifier.height(20.dp))
         }
     }
 }
