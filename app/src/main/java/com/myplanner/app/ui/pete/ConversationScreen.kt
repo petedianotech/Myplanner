@@ -55,6 +55,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.myplanner.app.ai.GeminiConfig
+import com.myplanner.app.ai.GeminiLiveSession
 import com.myplanner.app.ui.components.PeteAmbientBackground
 import com.myplanner.app.ui.components.PeteGlassCard
 import com.myplanner.app.ui.components.PeteGlassPill
@@ -87,7 +88,7 @@ fun ConversationScreen(
         when (state.navigateHint) {
             "brief" -> onNavigateBrief?.invoke()
             "focus" -> onNavigateFocus?.invoke(state.focusMinutes ?: 25)
-            "command" -> onNavigateCommand?.invoke()
+            "command", "live" -> onNavigateCommand?.invoke()
         }
         if (state.navigateHint != null) viewModel.clearNavigateHint()
     }
@@ -108,6 +109,10 @@ fun ConversationScreen(
             ) {
                 PeteGlassPill(text = "Back", onClick = onBack)
                 Spacer(Modifier.weight(1f))
+                if (onNavigateCommand != null) {
+                    PeteGlassPill(text = "Live call", onClick = onNavigateCommand)
+                    Spacer(Modifier.width(8.dp))
+                }
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         when (state.listenState) {
@@ -138,8 +143,7 @@ fun ConversationScreen(
                             modifier = Modifier
                                 .clip(AppShapes.pill)
                                 .background(
-                                    if (selected) PeteColors.IndigoDeep
-                                    else PeteColors.GlassFill
+                                    if (selected) PeteColors.IndigoDeep else PeteColors.GlassFill
                                 )
                                 .border(
                                     1.dp,
@@ -210,7 +214,9 @@ fun ConversationScreen(
             ) {
                 PeteGlassPill(text = "Today", onClick = { viewModel.quickAction("Today") })
                 PeteGlassPill(text = "Add task", onClick = { viewModel.quickAction("Add task") })
-                PeteGlassPill(text = "Focus 25m", onClick = { viewModel.quickAction("Focus 25m") })
+                if (onNavigateCommand != null) {
+                    PeteGlassPill(text = "Live call", onClick = onNavigateCommand)
+                }
             }
 
             Row(
@@ -228,11 +234,7 @@ fun ConversationScreen(
                         .padding(horizontal = 18.dp, vertical = 14.dp)
                 ) {
                     if (state.input.isEmpty()) {
-                        Text(
-                            "Message petediano…",
-                            color = PeteColors.OnDarkMuted,
-                            fontSize = 16.sp
-                        )
+                        Text("Message petediano…", color = PeteColors.OnDarkMuted, fontSize = 16.sp)
                     }
                     BasicTextField(
                         value = state.input,
