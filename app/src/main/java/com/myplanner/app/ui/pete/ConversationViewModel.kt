@@ -31,11 +31,13 @@ data class ConversationUiState(
     val input: String = "",
     val navigateHint: String? = null,
     val focusMinutes: Int? = null,
-    val geminiReady: Boolean = GeminiConfig.isConfigured,
-    val statusHint: String = if (GeminiConfig.isConfigured) "Gemini live · type or speak" else "Local mode · add GEMINI_API_KEY for full chat"
+    val geminiReady: Boolean = false,
+    val selectedModel: String = GeminiConfig.DEFAULT_MODEL,
+    val statusHint: String = ""
 )
 
 class ConversationViewModel(application: Application) : AndroidViewModel(application) {
+    private val app = application
     private val db = AppDatabase.getInstance(application)
     private val taskRepo = TaskRepository(db.taskDao())
     private val reminderRepo = ReminderRepository.create(application, db.reminderDao())
@@ -45,16 +47,21 @@ class ConversationViewModel(application: Application) : AndroidViewModel(applica
     private val speech = SpeechHelper(application)
     private val geminiHistory = mutableListOf<GeminiApiClient.Turn>()
 
+    private val initialModel = GeminiConfig.getSelectedModel(application)
+
     private val _state = MutableStateFlow(
         ConversationUiState(
+            geminiReady = GeminiConfig.isConfigured,
+            selectedModel = initialModel,
+            statusHint = statusLine(GeminiConfig.isConfigured, initialModel),
             messages = listOf(
                 ChatMessage(
                     1,
                     true,
                     if (GeminiConfig.isConfigured)
-                        "Hey boss. Gemini is live — type or talk. What do we need done?"
+                        "Hey boss. Gemini is live (${GeminiConfig.labelFor(initialModel)}). Type or talk — switch models anytime."
                     else
-                        "Hey boss. Local commands work now. Add GEMINI_API_KEY for full Gemini chat."
+                        "Hey boss. Local commands work. Add GEMINI_API_KEY for full Gemini chat."
                 )
             )
         )
@@ -65,6 +72,26 @@ class ConversationViewModel(application: Application) : AndroidViewModel(applica
 
     init {
         speech.initTts()
+    }
+
+    private fun statusLine(ready: Boolean, model: String): String =
+        if (ready) "${GeminiConfig.labelFor(model)} · type or speak"
+        else "Local mode · add GEMINI_API_KEY"
+
+    fun selectModel(modelId: String) {
+        GeminiConfig.setSelectedModel(app, modelId)
+        geminiHistory.clear()
+        _state.update {
+            it.copy(
+                selectedModel = modelId,
+                statusHint = statusLine(it.geminiReady, modelId),
+                messages = it.messages + ChatMessage(
+                    nextId++,
+                    true,
+                    "Switched to ${GeminiConfig.labelFor(modelId)}."
+                )
+            )
+        }
     }
 
     fun onInputChange(value: String) {
@@ -91,7 +118,7 @@ class ConversationViewModel(application: Application) : AndroidViewModel(applica
             val (reply, nav, focusMins) = runCatching {
                 answer(payload)
             }.getOrElse { e ->
-                Triple("Sorry boss — ${e.message?.take(160) ?: "something went wrong."}", null, null)
+                Triple("Sorry boss — ${e.message?.take(200) ?: "something went wrong."}", null, null)
             }
 
             val peteMsg = ChatMessage(nextId++, true, reply)
@@ -128,7 +155,8 @@ class ConversationViewModel(application: Application) : AndroidViewModel(applica
         }
 
         if (GeminiConfig.isConfigured) {
-            val text = gemini.chat(payload, geminiHistory.toList())
+            val model = _state.value.selectedModel
+            val text = gemini.chat(payload, geminiHistory.toList(), model = model)
             geminiHistory.add(GeminiApiClient.Turn("user", payload))
             geminiHistory.add(GeminiApiClient.Turn("model", text))
             if (geminiHistory.size > 24) {
