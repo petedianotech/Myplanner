@@ -114,7 +114,10 @@ fun ConversationScreen(
                 }
             }
 
-            Box(Modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
                 PeteOrb(
                     size = 96.dp,
                     glowing = state.listenState == PeteListenState.Listening ||
@@ -134,7 +137,7 @@ fun ConversationScreen(
             ) {
                 items(state.messages, key = { it.id }) { msg ->
                     Box(
-                        Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth(),
                         contentAlignment = if (msg.fromPete) Alignment.CenterStart else Alignment.CenterEnd
                     ) {
                         PeteGlassCard(
@@ -171,7 +174,7 @@ fun ConversationScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
-                    Modifier
+                    modifier = Modifier
                         .weight(1f)
                         .clip(AppShapes.textField)
                         .background(PeteColors.GlassFillStrong)
