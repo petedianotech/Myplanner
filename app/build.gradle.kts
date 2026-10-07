@@ -28,8 +28,8 @@ android {
         applicationId = "com.myplanner.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 7
-        versionName = "2.1.0-pete"
+        versionCode = 8
+        versionName = "2.2.0-petediano"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -38,8 +38,10 @@ android {
         }
 
         val geminiKey = secret("GEMINI_API_KEY")
+        // Free-tier default: 3.5 Flash-Lite (2.0 shut down; 3.8 often 503 on free tier)
+        val geminiModel = secret("GEMINI_MODEL").ifBlank { "gemini-3.5-flash-lite" }
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
-        buildConfigField("String", "GEMINI_MODEL", "\"gemini-2.0-flash\"")
+        buildConfigField("String", "GEMINI_MODEL", "\"$geminiModel\"")
     }
 
     buildTypes {
