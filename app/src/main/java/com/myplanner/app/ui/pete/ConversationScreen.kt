@@ -5,6 +5,9 @@ import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,8 +25,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.Mic
@@ -41,11 +47,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.myplanner.app.ai.GeminiConfig
 import com.myplanner.app.ui.components.PeteAmbientBackground
 import com.myplanner.app.ui.components.PeteGlassCard
 import com.myplanner.app.ui.components.PeteGlassPill
@@ -105,13 +114,51 @@ fun ConversationScreen(
                             PeteListenState.Listening -> "Listening…"
                             PeteListenState.Thinking -> "Thinking…"
                             PeteListenState.Speaking -> "Speaking…"
-                            else -> "Pete"
+                            else -> "petediano"
                         },
                         color = PeteColors.OnDarkMuted,
-                        fontSize = 13.sp
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
                     )
                     Text(state.statusHint, color = PeteColors.Cyan, fontSize = 10.sp)
                 }
+            }
+
+            if (state.geminiReady) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState())
+                        .padding(horizontal = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    GeminiConfig.availableModels.forEach { opt ->
+                        val selected = opt.id == state.selectedModel
+                        Box(
+                            modifier = Modifier
+                                .clip(AppShapes.pill)
+                                .background(
+                                    if (selected) PeteColors.IndigoDeep
+                                    else PeteColors.GlassFill
+                                )
+                                .border(
+                                    1.dp,
+                                    if (selected) PeteColors.Cyan else PeteColors.GlassBorder,
+                                    AppShapes.pill
+                                )
+                                .clickable { viewModel.selectModel(opt.id) }
+                                .padding(horizontal = 14.dp, vertical = 8.dp)
+                        ) {
+                            Text(
+                                opt.label,
+                                color = if (selected) Color.White else PeteColors.OnDarkSoft,
+                                fontSize = 12.sp,
+                                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                            )
+                        }
+                    }
+                }
+                Spacer(Modifier.height(8.dp))
             }
 
             Box(
@@ -119,12 +166,12 @@ fun ConversationScreen(
                 contentAlignment = Alignment.Center
             ) {
                 PeteOrb(
-                    size = 96.dp,
+                    size = 88.dp,
                     glowing = state.listenState == PeteListenState.Listening ||
                         state.listenState == PeteListenState.Speaking
                 )
             }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
 
             LazyColumn(
                 state = listState,
@@ -158,9 +205,8 @@ fun ConversationScreen(
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 PeteGlassPill(text = "Today", onClick = { viewModel.quickAction("Today") })
                 PeteGlassPill(text = "Add task", onClick = { viewModel.quickAction("Add task") })
@@ -170,7 +216,7 @@ fun ConversationScreen(
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
@@ -178,18 +224,29 @@ fun ConversationScreen(
                         .weight(1f)
                         .clip(AppShapes.textField)
                         .background(PeteColors.GlassFillStrong)
-                        .padding(horizontal = 16.dp, vertical = 14.dp)
+                        .border(1.dp, PeteColors.GlassBorder, AppShapes.textField)
+                        .padding(horizontal = 18.dp, vertical = 14.dp)
                 ) {
                     if (state.input.isEmpty()) {
-                        Text("Type a message…", color = PeteColors.OnDarkMuted, fontSize = 15.sp)
+                        Text(
+                            "Message petediano…",
+                            color = PeteColors.OnDarkMuted,
+                            fontSize = 16.sp
+                        )
                     }
                     BasicTextField(
                         value = state.input,
                         onValueChange = viewModel::onInputChange,
-                        textStyle = TextStyle(color = PeteColors.OnDark, fontSize = 15.sp),
+                        textStyle = TextStyle(
+                            color = PeteColors.OnDark,
+                            fontSize = 16.sp,
+                            lineHeight = 22.sp
+                        ),
                         cursorBrush = SolidColor(PeteColors.Cyan),
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                        keyboardActions = KeyboardActions(onSend = { viewModel.sendText() })
                     )
                 }
                 Spacer(Modifier.width(8.dp))
@@ -202,7 +259,7 @@ fun ConversationScreen(
                         else micPermission.launch(Manifest.permission.RECORD_AUDIO)
                     },
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(52.dp)
                         .clip(CircleShape)
                         .background(
                             if (state.listenState == PeteListenState.Listening)
@@ -219,7 +276,7 @@ fun ConversationScreen(
                 IconButton(
                     onClick = { viewModel.sendText() },
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(52.dp)
                         .clip(CircleShape)
                         .background(PeteColors.IndigoDeep)
                 ) {
