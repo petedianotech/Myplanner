@@ -19,9 +19,6 @@ interface TaskDao {
         """)
     fun observeAll(): Flow<List<TaskEntity>>
 
-    @Query("SELECT * FROM tasks")
-    suspend fun getAll(): List<TaskEntity>
-
     @Query("SELECT * FROM tasks WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): TaskEntity?
 
@@ -68,4 +65,18 @@ interface TaskDao {
 
     @Query("SELECT COUNT(*) FROM tasks")
     suspend fun count(): Int
+
+    @Query("SELECT * FROM tasks")
+    suspend fun getAll(): List<TaskEntity>
+
+    @Query("SELECT COUNT(*) FROM tasks WHERE completed = 0")
+    suspend fun countOpen(): Int
+
+    @Query("""
+        SELECT * FROM tasks
+        WHERE completed = 1 AND completedAtEpochMillis IS NOT NULL
+        ORDER BY completedAtEpochMillis DESC
+        LIMIT 200
+        """)
+    suspend fun getRecentlyCompleted(): List<TaskEntity>
 }
