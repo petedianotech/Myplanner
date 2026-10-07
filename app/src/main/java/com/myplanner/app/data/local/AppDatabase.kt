@@ -12,9 +12,10 @@ import androidx.room.RoomDatabase
         TaskEntity::class,
         NoteEntity::class,
         IdeaEntity::class,
-        VoiceNoteEntity::class
+        VoiceNoteEntity::class,
+        HabitEntity::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -24,6 +25,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
     abstract fun ideaDao(): IdeaDao
     abstract fun voiceNoteDao(): VoiceNoteDao
+    abstract fun habitDao(): HabitDao
 
     companion object {
         private const val DATABASE_NAME = "myplanner.db"
