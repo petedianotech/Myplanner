@@ -24,7 +24,7 @@ class PeteCommandRouter(
         val text = raw.trim().lowercase(Locale.getDefault())
         if (text.isBlank()) return Result("I'm listening, boss.")
 
-        if (text.matches(Regex("^(hey |hi |hello )?(pete)?[.!]?$")) || text in listOf("hey", "hi", "hello")) {
+        if (text in listOf("hey", "hi", "hello", "hey pete", "hi pete", "hello pete")) {
             return Result("Hey boss. What do we need done?")
         }
 
@@ -68,17 +68,16 @@ class PeteCommandRouter(
 
     private fun focusMatch(text: String): Int? {
         if (!containsAny(text, "focus", "pomodoro", "deep work")) return null
-        Regex("(\d+)\s*(m|min|mins|minute|minutes)").find(text)?.let {
-            return it.groupValues[1].toInt().coerceIn(5, 180)
-        }
+        val m = Regex("""(\d+)\s*(m|min|mins|minute|minutes)""").find(text)
+        if (m != null) return m.groupValues[1].toInt().coerceIn(5, 180)
         return 25
     }
 
     private fun parseAddTask(text: String): String? {
         val patterns = listOf(
-            Regex("^(?:add |new |create )?(?:a )?task\s+(.+)$"),
-            Regex("^todo\s+(.+)$"),
-            Regex("^i need to\s+(.+)$")
+            Regex("""^(?:add |new |create )?(?:a )?task\s+(.+)$"""),
+            Regex("""^todo\s+(.+)$"""),
+            Regex("""^i need to\s+(.+)$""")
         )
         for (p in patterns) {
             p.find(text)?.groupValues?.getOrNull(1)?.trim()?.takeIf { it.length > 1 }?.let {
@@ -90,11 +89,11 @@ class PeteCommandRouter(
 
     private fun parseReminder(text: String): Pair<String, Long>? {
         if (!containsAny(text, "remind", "reminder", "alert me")) return null
-        val cleaned = text
-            .replace(Regex("^(hey pete[, ]*)"), "")
-            .replace(Regex("remind me (to |about )?"), "")
-            .replace(Regex("^set (a )?reminder (to |for )?"), "")
-            .trim()
+        var cleaned = text
+        cleaned = cleaned.replace(Regex("""^hey pete[, ]*"""), "")
+        cleaned = cleaned.replace(Regex("""remind me (to |about )?"""), "")
+        cleaned = cleaned.replace(Regex("""^set (a )?reminder (to |for )?"""), "")
+        cleaned = cleaned.trim()
         if (cleaned.length < 2) return null
         val (titlePart, whenMillis) = extractWhen(cleaned)
         val title = titlePart.trim().ifBlank { cleaned }.replaceFirstChar { it.uppercase() }
@@ -102,19 +101,19 @@ class PeteCommandRouter(
     }
 
     private fun parseNote(text: String): String? {
-        val p = Regex("^(?:take a note|note|remember that)\\s+(.+)$")
+        val p = Regex("""^(?:take a note|note|remember that)\s+(.+)$""")
         return p.find(text)?.groupValues?.getOrNull(1)?.trim()?.takeIf { it.length > 1 }
     }
 
     private fun extractWhen(text: String): Pair<String, Long> {
         val zone = ZoneId.systemDefault()
         val now = LocalDateTime.now(zone)
-        Regex("\\bin\\s+(\\d+)\\s*(m|min|mins|minute|minutes)\\b").find(text)?.let { m ->
+        Regex("""\bin\s+(\d+)\s*(m|min|mins|minute|minutes)\b""").find(text)?.let { m ->
             val n = m.groupValues[1].toInt()
             val title = text.replace(m.value, "").trim()
             return title to System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(n.toLong())
         }
-        Regex("\\bin\\s+(\\d+)\\s*(h|hr|hour|hours)\\b").find(text)?.let { m ->
+        Regex("""\bin\s+(\d+)\s*(h|hr|hour|hours)\b""").find(text)?.let { m ->
             val n = m.groupValues[1].toInt()
             val title = text.replace(m.value, "").trim()
             return title to System.currentTimeMillis() + TimeUnit.HOURS.toMillis(n.toLong())
