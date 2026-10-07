@@ -28,8 +28,8 @@ android {
         applicationId = "com.myplanner.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 8
-        versionName = "2.2.0-petediano"
+        versionCode = 9
+        versionName = "2.3.0-live"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -38,7 +38,6 @@ android {
         }
 
         val geminiKey = secret("GEMINI_API_KEY")
-        // Free-tier default: 3.5 Flash-Lite (2.0 shut down; 3.8 often 503 on free tier)
         val geminiModel = secret("GEMINI_MODEL").ifBlank { "gemini-3.5-flash-lite" }
         buildConfigField("String", "GEMINI_API_KEY", "\"$geminiKey\"")
         buildConfigField("String", "GEMINI_MODEL", "\"$geminiModel\"")
@@ -110,6 +109,8 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
 
     implementation(libs.androidx.work.runtime.ktx)
+
+    implementation(libs.okhttp)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
