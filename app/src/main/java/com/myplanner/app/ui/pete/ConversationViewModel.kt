@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.myplanner.app.ai.GeminiApiClient
 import com.myplanner.app.ai.GeminiConfig
+import com.myplanner.app.ai.GeminiLiveSession
 import com.myplanner.app.ai.PeteCommandRouter
 import com.myplanner.app.ai.SpeechHelper
 import com.myplanner.app.data.local.AppDatabase
@@ -59,9 +60,9 @@ class ConversationViewModel(application: Application) : AndroidViewModel(applica
                     1,
                     true,
                     if (GeminiConfig.isConfigured)
-                        "Hey boss. Gemini is live (${GeminiConfig.labelFor(initialModel)}). Type or talk — switch models anytime."
+                        "Hey boss. Text chat or say start call / hey peter for Live voice."
                     else
-                        "Hey boss. Local commands work. Add GEMINI_API_KEY for full Gemini chat."
+                        "Hey boss. Local commands work. Add GEMINI_API_KEY for Gemini."
                 )
             )
         )
@@ -113,6 +114,18 @@ class ConversationViewModel(application: Application) : AndroidViewModel(applica
                     input = "",
                     listenState = PeteListenState.Thinking
                 )
+            }
+
+            if (GeminiLiveSession.containsStartPhrase(payload)) {
+                val peteMsg = ChatMessage(nextId++, true, "Starting live call…")
+                _state.update {
+                    it.copy(
+                        messages = it.messages + peteMsg,
+                        listenState = PeteListenState.Idle,
+                        navigateHint = "live"
+                    )
+                }
+                return@launch
             }
 
             val (reply, nav, focusMins) = runCatching {
