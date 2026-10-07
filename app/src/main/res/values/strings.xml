@@ -4,7 +4,7 @@
 
     <!-- Hello / onboarding -->
     <string name="hello_title">Welcome to petediano</string>
-    <string name="hello_subtitle">Your private AI assistant & planner</string>
+    <string name="hello_subtitle">Your private AI assistant and planner</string>
     <string name="hello_tagline">Hey Pete. Plan offline. Stay private.</string>
     <string name="hello_description">Talk to Pete, manage tasks, reminders, notes and ideas — on your device. No account, no ads.</string>
     <string name="hello_get_started">Get started</string>
