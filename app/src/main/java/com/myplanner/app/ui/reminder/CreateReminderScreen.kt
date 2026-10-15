@@ -30,13 +30,13 @@ fun CreateReminderScreen(
 ) {
     val zone = ZoneId.systemDefault()
     var triggerAt by remember {
-        mutableStateOf<Long?>(ZonedDateTime.now(zone).plusHours(1).toInstant().toEpochMilli())
+        mutableStateOf<Long?>(ZonedDateTime.now(zone).plusMinutes(5).toInstant().toEpochMilli())
     }
     var repeatType by remember { mutableStateOf(ReminderEntity.REPEAT_NONE) }
 
     CaptureFormScreen(
         title = "New reminder",
-        subtitle = "You'll get a local alert at the scheduled time.",
+        subtitle = "Local alert fires exactly at the scheduled time (exact alarm).",
         primaryLabel = "Save reminder",
         fieldLabel = "Remind me to",
         fieldPlaceholder = "e.g. Pick up the kids",
@@ -50,9 +50,19 @@ fun CreateReminderScreen(
                 zone = zone
             )
             Spacer(Modifier.height(Spacing.md))
-            Text("Quick picks", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "Quick picks",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Spacer(Modifier.height(Spacing.sm))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
+                AppFilterChip(label = "In 1 min", selected = false, onClick = {
+                    triggerAt = ZonedDateTime.now(zone).plusMinutes(1).toInstant().toEpochMilli()
+                })
+                AppFilterChip(label = "In 5 min", selected = false, onClick = {
+                    triggerAt = ZonedDateTime.now(zone).plusMinutes(5).toInstant().toEpochMilli()
+                })
                 AppFilterChip(label = "In 1 hour", selected = false, onClick = {
                     triggerAt = ZonedDateTime.now(zone).plusHours(1).toInstant().toEpochMilli()
                 })
@@ -60,11 +70,20 @@ fun CreateReminderScreen(
                     triggerAt = LocalDate.now(zone).plusDays(1).atTime(9, 0).atZone(zone).toInstant().toEpochMilli()
                 })
                 AppFilterChip(label = "Tonight 20:00", selected = false, onClick = {
-                    triggerAt = LocalDate.now(zone).atTime(20, 0).atZone(zone).toInstant().toEpochMilli()
+                    val tonight = LocalDate.now(zone).atTime(20, 0).atZone(zone)
+                    triggerAt = if (tonight.toInstant().toEpochMilli() > System.currentTimeMillis()) {
+                        tonight.toInstant().toEpochMilli()
+                    } else {
+                        tonight.plusDays(1).toInstant().toEpochMilli()
+                    }
                 })
             }
             Spacer(Modifier.height(Spacing.lg))
-            Text("Repeat", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "Repeat",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Spacer(Modifier.height(Spacing.sm))
             FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.sm)) {
                 listOf(
@@ -73,7 +92,11 @@ fun CreateReminderScreen(
                     ReminderEntity.REPEAT_WEEKLY to "Weekly",
                     ReminderEntity.REPEAT_MONTHLY to "Monthly"
                 ).forEach { (value, label) ->
-                    AppFilterChip(label = label, selected = repeatType == value, onClick = { repeatType = value })
+                    AppFilterChip(
+                        label = label,
+                        selected = repeatType == value,
+                        onClick = { repeatType = value }
+                    )
                 }
             }
         },
