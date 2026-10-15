@@ -1,7 +1,10 @@
 package com.myplanner.app.ui.pete
 
 import android.Manifest
+import android.app.Activity
+import android.content.Context
 import android.content.pm.PackageManager
+import android.media.projection.MediaProjectionManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.LinearEasing
@@ -70,6 +73,24 @@ fun LiveCallScreen(
     ) { granted ->
         if (granted) viewModel.startCall()
     }
+    val screenShareLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            com.myplanner.app.overlay.LiveCallService.start(
+                context,
+                model = state.selectedLiveModel,
+                resultCode = result.resultCode,
+                data = result.data
+            )
+            viewModel.startCall()
+        }
+    }
+
+    fun requestScreenShare() {
+        val mgr = context.getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+        screenShareLauncher.launch(mgr.createScreenCaptureIntent())
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         PeteAmbientBackground()
@@ -88,15 +109,23 @@ fun LiveCallScreen(
             ) {
                 PeteGlassPill(text = "Back", onClick = {
                     viewModel.endCall()
+                    com.myplanner.app.overlay.LiveCallService.stop(context)
                     onBack()
                 })
                 Spacer(Modifier.weight(1f))
-                Text(
-                    "Live call",
-                    color = PeteColors.OnDark,
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 16.sp
-                )
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        "Pete Live",
+                        color = PeteColors.OnDark,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                    Text(
+                        "voice + screen",
+                        color = PeteColors.Cyan.copy(alpha = 0.85f),
+                        fontSize = 11.sp
+                    )
+                }
             }
 
             Text(
@@ -185,6 +214,18 @@ fun LiveCallScreen(
                         },
                         modifier = Modifier.fillMaxWidth()
                     )
+                    Spacer(Modifier.height(10.dp))
+                    PetePillButton(
+                        text = "Start with screen share",
+                        onClick = {
+                            val ok = ContextCompat.checkSelfPermission(
+                                context, Manifest.permission.RECORD_AUDIO
+                            ) == PackageManager.PERMISSION_GRANTED
+                            if (ok) requestScreenShare()
+                            else micPermission.launch(Manifest.permission.RECORD_AUDIO)
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
                 LiveCallPhase.Connecting -> {
                     PetePillButton(
@@ -197,14 +238,18 @@ fun LiveCallScreen(
                 LiveCallPhase.Live, LiveCallPhase.Ending -> {
                     PetePillButton(
                         text = "End call",
-                        onClick = { viewModel.endCall("Call ended") },
+                        onClick = {
+                            viewModel.endCall("Call ended")
+                            com.myplanner.app.overlay.LiveCallService.stop(context)
+                        },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
             Spacer(Modifier.height(8.dp))
             Text(
-                "Say stop / goodbye to hang up · start call / hey peter to begin",
+                "Say stop / goodbye to hang up · hey pete / start call to begin\n" +
+                    "Screen share lets Pete see your phone while you switch apps",
                 color = PeteColors.OnDarkMuted,
                 fontSize = 11.sp,
                 textAlign = TextAlign.Center,
