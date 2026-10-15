@@ -20,10 +20,11 @@
     <!-- Overlay bubble (appear on top of other apps) -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
-    <!-- Foreground services for bubble + voice -->
+    <!-- Foreground services for bubble + voice + screen share -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
@@ -60,6 +61,12 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Personal AI assistant overlay bubble" />
         </service>
+
+        <!-- Live call + optional screen share (MediaProjection) so Pete can see the screen while user switches apps -->
+        <service
+            android:name=".overlay.LiveCallService"
+            android:exported="false"
+            android:foregroundServiceType="microphone|mediaProjection" />
 
         <receiver
             android:name=".notification.ReminderReceiver"
