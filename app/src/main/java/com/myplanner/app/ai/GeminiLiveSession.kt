@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * Input audio: 16-bit PCM LE mono 16 kHz
  * Output audio: 16-bit PCM LE mono 24 kHz
+ * Video: JPEG frames via realtimeInput.video (~1 FPS)
  */
 class GeminiLiveSession(
     private val apiKey: String,
@@ -128,6 +129,27 @@ class GeminiLiveSession(
         socket?.send(msg.toString())
     }
 
+    /**
+     * Send a single JPEG frame for screen/camera share (max ~1 FPS recommended by Live API).
+     * Matches official Gemini Live screen-share behaviour so Pete can see the user's screen
+     * even when they switch to other apps.
+     */
+    fun sendVideoJpeg(jpegBytes: ByteArray) {
+        if (!open.get() || !setupDone.get() || jpegBytes.isEmpty()) return
+        val b64 = Base64.encodeToString(jpegBytes, Base64.NO_WRAP)
+        val msg = JSONObject()
+            .put(
+                "realtimeInput",
+                JSONObject().put(
+                    "video",
+                    JSONObject()
+                        .put("data", b64)
+                        .put("mimeType", "image/jpeg")
+                )
+            )
+        socket?.send(msg.toString())
+    }
+
     fun sendText(text: String) {
         if (!open.get() || !setupDone.get() || text.isBlank()) return
         val msg = JSONObject()
@@ -204,6 +226,7 @@ class GeminiLiveSession(
         const val DEFAULT_LIVE_PROMPT =
             "You are Pete, the personal voice assistant for petediano. " +
                 "Speak briefly and naturally like a helpful friend. Call the user boss. " +
+                "You can see the user's phone screen when they share it — describe or help with whatever is visible. " +
                 "If the user says stop, goodbye, end call, or hang up, reply briefly and stop talking."
 
         val END_PHRASES = listOf(
