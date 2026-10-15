@@ -47,6 +47,7 @@ object GeminiConfig {
 
     const val DEFAULT_MODEL = "gemini-3.5-flash-lite"
     const val DEFAULT_LIVE_MODEL = "gemini-3.8-live"
+    const val DEFAULT_IMAGE_MODEL = "gemini-nano-banana-2.1"
 
     private const val PREFS = "pete_gemini"
     private const val KEY_MODEL = "selected_model"
