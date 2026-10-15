@@ -1,31 +1,31 @@
-# Pete
+# petediano
 
-Personal Android AI assistant — Gemini-powered chat, voice, and overlay bubble.
+Personal Android AI assistant — Gemini chat with **web search**, Live voice, habits, and offline planner.
 
-**Version 2.1.0-pete**
+**Version 2.5.0-chat**
 
-## Features
-- Ambient home (gradients, glass, pills)
-- In-app conversation: **type or speak**
-- Gemini live chat when `GEMINI_API_KEY` is set
-- Local command router (tasks, reminders, focus) offline
-- Floating **bubble** over other apps (type + mic)
-- Daily brief, focus timer, quick command
-- Splash + Pete icon
+## Chat (production)
+- Modern bubble UI (ChatGPT / Grok style)
+- **Real Gemini answers** (not local stubs) for general questions
+- **Google Search grounding** — toggle in chat header
+- **Image generation** via Nano Banana (`draw a…`) — requires billed API key
+- Free-tier models: 3.5 / 3.1 Flash-Lite, 3.8 / 3.6 / 2.5 Flash
+- Model picker, citations, typing indicator, suggestion chips
+
+## Other features
+- Gemini Live voice (`gemini-3.8-live`)
+- Habits streaks, JSON backup export
+- Exact-time reminders + missed recovery
+- Floating overlay bubble
 
 ## API key
-### Local
-`local.properties` in project root:
+`local.properties`:
 ```
 GEMINI_API_KEY=your_key
 ```
+GitHub Actions secret: **GEMINI_API_KEY**
 
-### GitHub Actions
-Secret name: **GEMINI_API_KEY**
-
-## Overlay bubble
-Settings → Assistant → Floating bubble  
-Grant **Display over other apps**, then enable.
+Image models need a **billed** Google AI project. Text + search work on free tier.
 
 ## Build
 ```
