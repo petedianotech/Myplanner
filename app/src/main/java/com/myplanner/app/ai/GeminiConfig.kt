@@ -52,6 +52,8 @@ object GeminiConfig {
     private const val PREFS = "pete_gemini"
     private const val KEY_MODEL = "selected_model"
     private const val KEY_LIVE = "selected_live_model"
+    private const val KEY_SEARCH = "search_enabled"
+    private const val KEY_IMAGE = "selected_image_model"
 
     val apiKey: String get() = BuildConfig.GEMINI_API_KEY.trim()
     val isConfigured: Boolean get() = apiKey.isNotEmpty()
@@ -89,8 +91,32 @@ object GeminiConfig {
             .edit().putString(KEY_LIVE, modelId).apply()
     }
 
+    fun isSearchEnabled(context: Context): Boolean {
+        return context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getBoolean(KEY_SEARCH, true)
+    }
+
+    fun setSearchEnabled(context: Context, enabled: Boolean) {
+        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putBoolean(KEY_SEARCH, enabled).apply()
+    }
+
+    fun getImageModel(context: Context): String {
+        val prefs = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val saved = prefs.getString(KEY_IMAGE, null)
+        if (saved != null && imageModels.any { it.id == saved }) return saved
+        return DEFAULT_IMAGE_MODEL
+    }
+
+    fun setImageModel(context: Context, modelId: String) {
+        if (imageModels.none { it.id == modelId }) return
+        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putString(KEY_IMAGE, modelId).apply()
+    }
+
     fun labelFor(modelId: String): String =
         availableModels.firstOrNull { it.id == modelId }?.label
             ?: liveModels.firstOrNull { it.id == modelId }?.label
+            ?: imageModels.firstOrNull { it.id == modelId }?.label
             ?: modelId
 }
