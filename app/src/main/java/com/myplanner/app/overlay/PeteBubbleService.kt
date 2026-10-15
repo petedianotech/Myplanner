@@ -240,7 +240,7 @@ class PeteBubbleService : Service() {
     private suspend fun generateReply(text: String): String {
         return try {
             if (GeminiConfig.isConfigured) {
-                GeminiApiClient().chat(text, history.toList())
+                GeminiApiClient().chat(text, history.toList()).text
             } else {
                 "Got it, boss: \"$text\". Add GEMINI_API_KEY for full AI replies."
             }
