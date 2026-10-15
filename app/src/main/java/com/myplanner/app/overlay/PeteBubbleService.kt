@@ -65,6 +65,11 @@ class PeteBubbleService : Service() {
                 stopSelf()
                 return START_NOT_STICKY
             }
+            ACTION_SHOW_DURING_LIVE -> {
+                if (bubbleView == null && Settings.canDrawOverlays(this)) {
+                    showBubble()
+                }
+            }
         }
         return START_STICKY
     }
@@ -235,7 +240,7 @@ class PeteBubbleService : Service() {
     private suspend fun generateReply(text: String): String {
         return try {
             if (GeminiConfig.isConfigured) {
-                GeminiApiClient().chat(text, history.toList())
+                GeminiApiClient().chat(text, history.toList()).text
             } else {
                 "Got it, boss: \"$text\". Add GEMINI_API_KEY for full AI replies."
             }
@@ -322,6 +327,7 @@ class PeteBubbleService : Service() {
 
     companion object {
         const val ACTION_STOP = "com.myplanner.app.overlay.STOP"
+        const val ACTION_SHOW_DURING_LIVE = "com.myplanner.app.overlay.SHOW_DURING_LIVE"
         private const val NOTIF_ID = 42
 
         fun start(context: Context) {
