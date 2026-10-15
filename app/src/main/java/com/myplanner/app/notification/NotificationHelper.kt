@@ -17,6 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 object NotificationHelper {
 
     const val CHANNEL_REMINDERS = "reminders_v2"
+    const val CHANNEL_LIVE = "pete_live_call"
     private const val CHANNEL_NAME = "Reminders"
     private const val CHANNEL_DESC =
         "Local alerts for scheduled reminders. Delivered on this device only."
@@ -27,7 +28,6 @@ object NotificationHelper {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         if (channelsReady.get()) return
         val manager = context.getSystemService(NotificationManager::class.java) ?: return
-        // Delete legacy low-importance channel if present so heads-up works
         runCatching { manager.deleteNotificationChannel("reminders") }
         val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val audioAttrs = AudioAttributes.Builder()
@@ -51,6 +51,19 @@ object NotificationHelper {
             }
         }
         manager.createNotificationChannel(channel)
+
+        val liveChannel = NotificationChannel(
+            CHANNEL_LIVE,
+            "Pete Live Call",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
+            description = "Ongoing Live voice call with Pete. Stays visible while you switch apps."
+            enableVibration(false)
+            setShowBadge(false)
+            setSound(null, null)
+            lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
+        }
+        manager.createNotificationChannel(liveChannel)
         channelsReady.set(true)
     }
 
